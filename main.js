@@ -69,18 +69,32 @@ window.addEventListener('load', () => {
 
     drawMinimap();
     drawHUD();
+    drawDpad(ctx);
   }
 
   // ------------------------------------------------------------------
-  // Input — one action per key press (turn-based, not real-time).
-  // Prevent arrow keys from scrolling the browser page.
+  // Input — keyboard (desktop) and D-pad buttons (touch / mouse click).
   // ------------------------------------------------------------------
+
+  // Keyboard: prevent arrow keys from scrolling the browser page.
   document.addEventListener('keydown', (e) => {
     if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key)) {
       e.preventDefault();
     }
     if (handleKey(e, map)) draw();
   });
+
+  // Touch and mouse: convert the pointer position to canvas coordinates,
+  // check if it hit a D-pad button, then fire the same handleKey logic.
+  function handlePointer(e) {
+    e.preventDefault();
+    const { x, y } = getCanvasXY(e, canvas);
+    const key = getDpadKey(x, y);
+    if (key && handleKey({ key }, map)) draw();
+  }
+
+  canvas.addEventListener('touchstart', handlePointer, { passive: false });
+  canvas.addEventListener('mousedown',  handlePointer);
 
   draw();
 });
