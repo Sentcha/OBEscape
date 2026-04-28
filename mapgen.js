@@ -1,4 +1,4 @@
-// Tile type constants — a shared vocabulary used by the map, renderer, and player.
+// Tile type constants — shared vocabulary for map, renderer, player, and enemies.
 const TILE = {
   FLOOR:  0,
   WALL:   1,
@@ -8,27 +8,111 @@ const TILE = {
   TRAP:   5,
 };
 
-// Hardcoded test map for Milestone 2.
-// Procedural generation (Milestone 4) will replace this with a random maze each run.
+// Generate a random maze for the given dungeon level.
 //
-// Grid is 12 columns wide and 11 rows tall.
-// The outer edge is all walls. Interior 0s and 1s form a small navigable maze.
-// Stairs (2) are placed at the bottom-right corner as the level exit.
+// Algorithm: Recursive Backtracker (depth-first search with backtracking).
+// This guarantees a "perfect maze" — every room is reachable and there is
+// exactly one path between any two cells. That single-path property produces
+// long winding corridors with no shortcuts, which suits a dungeon well.
 //
-// Player starts at column 1, row 1 (top-left open cell).
+// How the grid works:
+//   Room cells live at ODD coordinates: (1,1), (1,3), (3,1), ...
+//   The cells at EVEN coordinates are the walls between rooms.
+//   Carving a passage means setting the even-coordinate wall between two
+//   adjacent rooms to FLOOR.
 //
-function createTestMap() {
-  return [
-    [1,1,1,1,1,1,1,1,1,1,1,1],  // row 0  — top wall
-    [1,0,0,0,0,0,0,0,0,0,0,1],  // row 1  — open corridor across the top
-    [1,0,1,1,1,1,1,1,1,0,0,1],  // row 2
-    [1,0,0,0,0,0,0,0,1,0,0,1],  // row 3
-    [1,1,1,1,1,0,1,0,1,0,0,1],  // row 4
-    [1,0,0,0,1,0,1,0,0,0,0,1],  // row 5
-    [1,0,1,0,1,0,1,1,1,1,0,1],  // row 6
-    [1,0,1,0,0,0,0,0,0,1,0,1],  // row 7
-    [1,0,1,1,1,1,1,0,0,1,0,1],  // row 8
-    [1,0,0,0,0,0,0,0,0,0,2,1],  // row 9  — open corridor across the bottom, stairs at end
-    [1,1,1,1,1,1,1,1,1,1,1,1],  // row 10 — bottom wall
-  ];
+//   Example for a 5×5 grid (N=2 rooms per side):
+//     1 1 1 1 1      1 1 1 1 1
+//     1 R 1 R 1  →   1 0 1 0 1   (R = room, 0 = floor after carving)
+//     1 1 1 1 1      1 0 1 0 1
+//     1 R 1 R 1      1 0 0 0 1
+//     1 1 1 1 1      1 1 1 1 1
+//
+// Grid size grows with dungeon depth: 15×15 at level 1, +2 per level, max 25×25.
+// Player start: (1,1) — always the top-left room.
+// Stairs:       placed at the cell farthest from the start via BFS.
+//
+function generateMaze(dungeonLevel) {
+  // Grid side length: must be odd so room cells land on odd coordinates.
+  const size = Math.min(13 + dungeonLevel * 2, 25);
+
+  // Start with all walls.
+  const map = Array.from({ length: size }, () => new Array(size).fill(TILE.WALL));
+
+  // N = number of room cells along one axis (e.g. size 15 → N = 7).
+  const N = Math.floor(size / 2);
+
+  // Convert a room index (0..N-1) to its map coordinate (1, 3, 5, ...).
+  function toMap(i) { return 1 + i * 2; }
+
+  // --- Recursive Backtracker ---
+  const visited = Array.from({ length: N }, () => new Array(N).fill(false));
+  const stack   = [{ r: 0, c: 0 }];
+  visited[0][0] = true;
+  map[1][1]     = TILE.FLOOR;
+
+  while (stack.length > 0) {
+    const { r, c } = stack[stack.length - 1];
+
+    // Collect unvisited neighbours in room-index space.
+    const neighbours = [];
+    if (r > 0   && !visited[r - 1][c]) neighbours.push({ r: r - 1, c });
+    if (r < N-1 && !visited[r + 1][c]) neighbours.push({ r: r + 1, c });
+    if (c > 0   && !visited[r][c - 1]) neighbours.push({ r, c: c - 1 });
+    if (c < N-1 && !visited[r][c + 1]) neighbours.push({ r, c: c + 1 });
+
+    if (neighbours.length > 0) {
+      // Pick a random unvisited neighbour.
+      const next = neighbours[Math.floor(Math.random() * neighbours.length)];
+
+      // Carve: open the wall between the current room and the chosen neighbour.
+      // The wall sits at the midpoint between the two rooms in map coordinates.
+      const wallR = toMap(r) + (next.r - r);
+      const wallC = toMap(c) + (next.c - c);
+      map[wallR][wallC]                   = TILE.FLOOR;
+      map[toMap(next.r)][toMap(next.c)]   = TILE.FLOOR;
+
+      visited[next.r][next.c] = true;
+      stack.push(next);
+    } else {
+      stack.pop(); // Dead end — backtrack to previous room.
+    }
+  }
+
+  // --- Place stairs at the farthest reachable cell from (1,1) ---
+  // BFS flood-fill measures the distance from the start to every floor cell.
+  // The farthest one becomes the level exit, maximising required exploration.
+  const stairsPos = findFarthestCell(map, 1, 1);
+  map[stairsPos.y][stairsPos.x] = TILE.STAIRS;
+
+  return map;
+}
+
+// BFS from (startX, startY). Returns the floor cell that requires the most
+// steps to reach — used to place stairs as far from the player as possible.
+function findFarthestCell(map, startX, startY) {
+  const rows  = map.length;
+  const cols  = map[0].length;
+  const dist  = Array.from({ length: rows }, () => new Array(cols).fill(-1));
+  const queue = [{ x: startX, y: startY }];
+  dist[startY][startX] = 0;
+  let farthest = { x: startX, y: startY };
+
+  const steps = [{ dx: 0, dy: -1 }, { dx: 1, dy: 0 }, { dx: 0, dy: 1 }, { dx: -1, dy: 0 }];
+
+  while (queue.length > 0) {
+    const { x, y } = queue.shift();
+    for (const s of steps) {
+      const nx = x + s.dx;
+      const ny = y + s.dy;
+      if (ny >= 0 && ny < rows && nx >= 0 && nx < cols &&
+          dist[ny][nx] === -1 && map[ny][nx] !== TILE.WALL) {
+        dist[ny][nx] = dist[y][x] + 1;
+        if (dist[ny][nx] > dist[farthest.y][farthest.x]) farthest = { x: nx, y: ny };
+        queue.push({ x: nx, y: ny });
+      }
+    }
+  }
+
+  return farthest;
 }

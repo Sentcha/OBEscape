@@ -6,17 +6,16 @@ window.addEventListener('load', () => {
   const canvas = document.getElementById('gameCanvas');
   const ctx = canvas.getContext('2d');
 
-  const map = createTestMap();
+  const map = generateMaze(player.dungeonLevel);
 
   // ------------------------------------------------------------------
   // Minimap — small top-down grid drawn in the bottom-left corner.
-  // Each map cell is CELL px square. The player is shown as a gold dot.
+  // Cell size shrinks for larger maps so the minimap stays within 120px.
   // ------------------------------------------------------------------
-  const CELL = 8;
-
   function drawMinimap() {
     const cols    = map[0].length;
     const rows    = map.length;
+    const CELL    = Math.floor(120 / Math.max(rows, cols));
     const originX = 10;
     const originY = canvas.height - rows * CELL - 10;
 
