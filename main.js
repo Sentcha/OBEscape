@@ -1,8 +1,6 @@
 // Entry point and game coordinator.
 //
-// Milestone 2: map + player movement + minimap feedback.
-// The 3D view is still a static hardcoded scene — Milestone 3 will replace it
-// with a view computed from the player's real position and facing.
+// Milestone 3: renderer connected to player position and facing.
 
 window.addEventListener('load', () => {
   const canvas = document.getElementById('gameCanvas');
@@ -59,13 +57,7 @@ window.addEventListener('load', () => {
   // Main draw — called once on load and again after every player action.
   // ------------------------------------------------------------------
   function draw() {
-    // 3D view: hardcoded static scene until Milestone 3.
-    renderView(ctx, [
-      { left: true,  right: true,  back: false },
-      { left: true,  right: true,  back: false },
-      { left: true,  right: false, back: false },
-      { left: true,  right: false, back: true  },
-    ]);
+    renderView(ctx, buildScene(map));
 
     drawMinimap();
     drawHUD();

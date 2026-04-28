@@ -34,6 +34,40 @@ function tryMove(map, dx, dy) {
   }
 }
 
+// Build the scene description for the renderer from the player's current
+// position and facing direction.
+//
+// For each depth d (1–4) we step d tiles forward, then check:
+//   - the cell to the LEFT of that position  → scene[d-1].left
+//   - the cell to the RIGHT                  → scene[d-1].right
+//   - the cell straight ahead (the forward tile itself) → scene[d-1].back
+//
+// Out-of-bounds cells are treated as walls so the renderer always has
+// something to draw at the map's edges.
+//
+function buildScene(map) {
+  const fwd = DIR[player.facing];
+  const rgt = { dx: -fwd.dy, dy:  fwd.dx }; // 90° clockwise from forward
+  const lft = { dx:  fwd.dy, dy: -fwd.dx }; // 90° counter-clockwise
+
+  function isWall(x, y) {
+    if (y < 0 || y >= map.length || x < 0 || x >= map[0].length) return true;
+    return map[y][x] === TILE.WALL;
+  }
+
+  const scene = [];
+  for (let d = 1; d <= 4; d++) {
+    const fx = player.x + d * fwd.dx;
+    const fy = player.y + d * fwd.dy;
+    scene.push({
+      left:  isWall(fx + lft.dx, fy + lft.dy),
+      right: isWall(fx + rgt.dx, fy + rgt.dy),
+      back:  isWall(fx, fy),
+    });
+  }
+  return scene;
+}
+
 // Process a keydown event and update the player state.
 // Returns true if anything changed (so the caller knows to redraw).
 function handleKey(e, map) {
