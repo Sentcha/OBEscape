@@ -1,22 +1,86 @@
-// Entry point. For Milestone 1 this renders a static test scene once.
-// Future milestones will replace the hardcoded scene with one built from
-// the real map and player position.
+// Entry point and game coordinator.
+//
+// Milestone 2: map + player movement + minimap feedback.
+// The 3D view is still a static hardcoded scene — Milestone 3 will replace it
+// with a view computed from the player's real position and facing.
 
 window.addEventListener('load', () => {
   const canvas = document.getElementById('gameCanvas');
   const ctx = canvas.getContext('2d');
 
-  // Static test scene.
-  // Corridor with walls on both sides at depths 1 and 2.
-  // At depth 3 the right wall opens up (a branching passage).
-  // A back wall closes the corridor at depth 4.
-  // This tests that the renderer correctly handles both closed and open passages.
-  const testScene = [
-    { left: true,  right: true,  back: false }, // depth 1 — nearest
-    { left: true,  right: true,  back: false }, // depth 2
-    { left: true,  right: false, back: false }, // depth 3 — open on the right
-    { left: true,  right: false, back: true  }, // depth 4 — wall at the far end
-  ];
+  const map = createTestMap();
 
-  renderView(ctx, testScene);
+  // ------------------------------------------------------------------
+  // Minimap — small top-down grid drawn in the bottom-left corner.
+  // Each map cell is CELL px square. The player is shown as a gold dot.
+  // ------------------------------------------------------------------
+  const CELL = 8;
+
+  function drawMinimap() {
+    const cols    = map[0].length;
+    const rows    = map.length;
+    const originX = 10;
+    const originY = canvas.height - rows * CELL - 10;
+
+    // Dark backing panel
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.65)';
+    ctx.fillRect(originX - 2, originY - 2, cols * CELL + 4, rows * CELL + 4);
+
+    // Cells
+    for (let row = 0; row < rows; row++) {
+      for (let col = 0; col < cols; col++) {
+        const tile = map[row][col];
+        if      (tile === TILE.WALL)   ctx.fillStyle = '#1a1a1a';
+        else if (tile === TILE.STAIRS) ctx.fillStyle = '#4fc3f7';
+        else                           ctx.fillStyle = '#3d3225';
+
+        ctx.fillRect(originX + col * CELL, originY + row * CELL, CELL - 1, CELL - 1);
+      }
+    }
+
+    // Player dot (gold)
+    ctx.fillStyle = '#f5d485';
+    ctx.fillRect(originX + player.x * CELL, originY + player.y * CELL, CELL - 1, CELL - 1);
+  }
+
+  // ------------------------------------------------------------------
+  // HUD — temporary position readout until the full HUD arrives in M9.
+  // ------------------------------------------------------------------
+  function drawHUD() {
+    ctx.fillStyle = '#f5d485';
+    ctx.font = 'bold 14px monospace';
+    ctx.fillText(
+      `Level ${player.dungeonLevel}    (${player.x}, ${player.y})    Facing: ${FACING_NAMES[player.facing]}`,
+      10, 22
+    );
+  }
+
+  // ------------------------------------------------------------------
+  // Main draw — called once on load and again after every player action.
+  // ------------------------------------------------------------------
+  function draw() {
+    // 3D view: hardcoded static scene until Milestone 3.
+    renderView(ctx, [
+      { left: true,  right: true,  back: false },
+      { left: true,  right: true,  back: false },
+      { left: true,  right: false, back: false },
+      { left: true,  right: false, back: true  },
+    ]);
+
+    drawMinimap();
+    drawHUD();
+  }
+
+  // ------------------------------------------------------------------
+  // Input — one action per key press (turn-based, not real-time).
+  // Prevent arrow keys from scrolling the browser page.
+  // ------------------------------------------------------------------
+  document.addEventListener('keydown', (e) => {
+    if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key)) {
+      e.preventDefault();
+    }
+    if (handleKey(e, map)) draw();
+  });
+
+  draw();
 });
