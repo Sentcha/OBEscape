@@ -76,23 +76,50 @@ function renderView(ctx, scene) {
       ctx.fillRect(far.l, far.t, far.r - far.l, far.b - far.t);
     }
 
-    // Left wall — always a trapezoid spanning near→far portals.
-    // wallSide for a parallel corridor wall; wallBack for a front-facing surface
-    // (back-wall extension or branch-entry inner face). Same shape means every
-    // segment meets its neighbours at exactly the right perspective angle.
-    fillPoly(ctx, [
-      [near.l, near.t],
-      [far.l,  far.t],
-      [far.l,  far.b],
-      [near.l, near.b],
-    ], shadeColor(s.left && !s.leftFlat ? COLORS.wallSide : COLORS.wallBack, shade));
+    // Left wall: either a flat extension of the back wall, or a perspective trapezoid.
+    if (s.left) {
+      if (s.leftFlat) {
+        // Part of a perpendicular wall — flat rectangle at back-wall height, same color.
+        ctx.fillStyle = shadeColor(COLORS.wallBack, shade);
+        ctx.fillRect(near.l, far.t, far.l - near.l, far.b - far.t);
+      } else {
+        fillPoly(ctx, [
+          [near.l, near.t],
+          [far.l,  far.t],
+          [far.l,  far.b],
+          [near.l, near.b],
+        ], shadeColor(COLORS.wallSide, shade));
+      }
+    } else {
+      // Side opening — draw the near face of the branch corridor entry wall.
+      // x: 1 corridor-width further left from the far portal edge, clamped to screen.
+      // y: spans from the near portal top/bottom so depth-1 fills the full strip height.
+      const wx = Math.max(0, 2 * far.l - CX);
+      const yt = Math.min(near.t, far.t);
+      const yb = Math.max(near.b, far.b);
+      ctx.fillStyle = shadeColor(COLORS.wallSide, shade);
+      ctx.fillRect(wx, yt, far.l - wx, yb - yt);
+    }
 
-    // Right wall — same logic, mirrored.
-    fillPoly(ctx, [
-      [far.r,  far.t],
-      [near.r, near.t],
-      [near.r, near.b],
-      [far.r,  far.b],
-    ], shadeColor(s.right && !s.rightFlat ? COLORS.wallSide : COLORS.wallBack, shade));
+    // Right wall: either a flat extension of the back wall, or a perspective trapezoid.
+    if (s.right) {
+      if (s.rightFlat) {
+        ctx.fillStyle = shadeColor(COLORS.wallBack, shade);
+        ctx.fillRect(far.r, far.t, near.r - far.r, far.b - far.t);
+      } else {
+        fillPoly(ctx, [
+          [far.r,  far.t],
+          [near.r, near.t],
+          [near.r, near.b],
+          [far.r,  far.b],
+        ], shadeColor(COLORS.wallSide, shade));
+      }
+    } else {
+      const wx = Math.min(CANVAS_W, 2 * far.r - CX);
+      const yt = Math.min(near.t, far.t);
+      const yb = Math.max(near.b, far.b);
+      ctx.fillStyle = shadeColor(COLORS.wallSide, shade);
+      ctx.fillRect(far.r, yt, wx - far.r, yb - yt);
+    }
   }
 }
