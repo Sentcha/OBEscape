@@ -51,9 +51,9 @@ window.addEventListener('load', () => {
       10, 22
     );
 
-    // Build info — bottom-right corner, small and unobtrusive.
-    ctx.font = '11px monospace';
-    ctx.fillStyle = 'rgba(245, 212, 133, 0.5)';
+    // Build info — bottom-right corner.
+    ctx.font = 'bold 15px monospace';
+    ctx.fillStyle = '#f5d485';
     const buildStr = `${VERSION.branch}@${VERSION.commit}  ${VERSION.date}`;
     const tw = ctx.measureText(buildStr).width;
     ctx.fillText(buildStr, canvas.width - tw - 10, canvas.height - 10);
