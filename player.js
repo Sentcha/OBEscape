@@ -75,14 +75,19 @@ function buildScene(map, maxDepth) {
     const farLeft   = isWall(fx + lft.dx, fy + lft.dy);
     const farRight  = isWall(fx + rgt.dx, fy + rgt.dy);
 
+    // flat = front-face extension of the back wall (not a side corridor wall).
+    // True when the near side is open but the far side is walled AND a back wall exists.
+    const leftFlat  = !nearLeft  && farLeft  && back;
+    const rightFlat = !nearRight && farRight && back;
     scene.push({
       back,
-      left:       nearLeft || farLeft,
-      right:      nearRight || farRight,
-      // flat = front-face extension of the back wall (not a side corridor wall).
-      // True when the near side is open but the far side is walled AND a back wall exists.
-      leftFlat:   !nearLeft  && farLeft  && back,
-      rightFlat:  !nearRight && farRight && back,
+      // Only include farLeft/farRight when they form a flat back-wall extension.
+      // farLeft && !back means a wall resuming after a branch opening — the next
+      // depth segment's nearLeft will catch it, so drawing here would block the opening.
+      left:  nearLeft  || leftFlat,
+      right: nearRight || rightFlat,
+      leftFlat,
+      rightFlat,
     });
   }
   return scene;
