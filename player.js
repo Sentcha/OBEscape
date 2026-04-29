@@ -45,7 +45,7 @@ function tryMove(map, dx, dy) {
 // Out-of-bounds cells are treated as walls so the renderer always has
 // something to draw at the map's edges.
 //
-function buildScene(map) {
+function buildScene(map, maxDepth) {
   const fwd = DIR[player.facing];
   const rgt = { dx: -fwd.dy, dy:  fwd.dx }; // 90° clockwise from forward
   const lft = { dx:  fwd.dy, dy: -fwd.dx }; // 90° counter-clockwise
@@ -56,7 +56,7 @@ function buildScene(map) {
   }
 
   const scene = [];
-  for (let d = 1; d <= 4; d++) {
+  for (let d = 1; d <= maxDepth; d++) {
     // far = the tile d steps ahead (used for the back wall check).
     // near = the tile d-1 steps ahead (used for left/right wall checks).
     //

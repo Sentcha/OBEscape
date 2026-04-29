@@ -4,7 +4,6 @@ const CX = CANVAS_W / 2;
 const CY = CANVAS_H / 2;
 
 // A "portal" is the rectangular cross-section of the corridor at a given depth.
-// Depth 1 = nearest tile, depth 4 = farthest visible tile.
 // 1/d perspective: each deeper portal is proportionally smaller, converging on the center.
 function makePortal(d) {
   return {
@@ -15,14 +14,6 @@ function makePortal(d) {
   };
 }
 
-const PORTALS = [
-  null,          // index 0 unused
-  makePortal(1), // depth 1 — nearest
-  makePortal(2),
-  makePortal(3),
-  makePortal(4), // depth 4 — farthest
-];
-
 // Color palette from the design document
 const COLORS = {
   ceiling:  '#0a0a1a',
@@ -31,11 +22,13 @@ const COLORS = {
   wallSide: '#b87a28',
 };
 
-// Brightness multiplier per depth. Depth 1 (nearest) is full brightness.
-// Depth 4 (farthest) is only 40% — simulates the corridor fading into darkness.
-const SHADE = [null, 1.0, 0.75, 0.55, 0.40];
+// Brightness at each depth. Starts at 1.0 (full) and fades by 0.15 per step,
+// flooring at 0.05 so distant walls remain just barely visible.
+function shadeAtDepth(d) {
+  return Math.max(0.05, 1.0 - (d - 1) * 0.15);
+}
 
-// Multiply each RGB channel of a hex color by `factor` to darken it.
+// Multiply each RGB channel of a hex color by `factor` to simulate distance darkness.
 function shadeColor(hex, factor) {
   const r = parseInt(hex.slice(1, 3), 16);
   const g = parseInt(hex.slice(3, 5), 16);
@@ -55,10 +48,8 @@ function fillPoly(ctx, points, color) {
 
 // Render the first-person corridor view.
 //
-// scene: array of 4 objects (index 0 = depth 1, index 3 = depth 4).
-//   Each object: { left: bool, right: bool, back: bool }
-//   left/right — is there a wall on that side at this depth?
-//   back       — is there a wall blocking the path at this depth?
+// scene: array built by buildScene — one entry per depth level.
+//   Each entry: { back, left, right, leftFlat, rightFlat }
 //
 function renderView(ctx, scene) {
   // 1. Background: ceiling (top half) and floor (bottom half).
@@ -69,14 +60,15 @@ function renderView(ctx, scene) {
   ctx.fillStyle = COLORS.floor;
   ctx.fillRect(0, CY, CANVAS_W, CY);
 
-  // 2. Painter's algorithm — draw depth 4 first, depth 1 last.
+  // 2. Painter's algorithm — draw deepest depth first, depth 1 last.
   //    This ensures nearer walls paint over farther ones.
-  for (let d = 4; d >= 1; d--) {
+  const maxDepth = scene.length;
+  for (let d = maxDepth; d >= 1; d--) {
     const s     = scene[d - 1];
-    const far   = PORTALS[d];
+    const far   = makePortal(d);
     // For depth 1, the "near" boundary is the screen edge itself.
-    const near  = d > 1 ? PORTALS[d - 1] : { l: 0, r: CANVAS_W, t: 0, b: CANVAS_H };
-    const shade = SHADE[d];
+    const near  = d > 1 ? makePortal(d - 1) : { l: 0, r: CANVAS_W, t: 0, b: CANVAS_H };
+    const shade = shadeAtDepth(d);
 
     // Back wall: a flat rectangle filling the portal at this depth.
     if (s.back) {

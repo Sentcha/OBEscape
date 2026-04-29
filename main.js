@@ -7,6 +7,8 @@ window.addEventListener('load', () => {
   const ctx = canvas.getContext('2d');
 
   const map = generateMaze(player.dungeonLevel);
+  // Longest possible straight corridor = full interior width of the map.
+  const maxDepth = map[0].length - 2;
 
   // ------------------------------------------------------------------
   // Minimap — small top-down grid drawn in the bottom-left corner.
@@ -63,7 +65,7 @@ window.addEventListener('load', () => {
   // Main draw — called once on load and again after every player action.
   // ------------------------------------------------------------------
   function draw() {
-    renderView(ctx, buildScene(map));
+    renderView(ctx, buildScene(map, maxDepth));
 
     drawMinimap();
     drawHUD();
