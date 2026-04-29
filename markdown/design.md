@@ -296,6 +296,20 @@ Items shift across the five levels: early floors yield crude 1890s gear from unl
 
 ---
 
+## Difficulty Levels
+
+The game offers selectable difficulty at the start of each run. All modes use the same procedurally generated mazes and five-level structure.
+
+| Mode | Description |
+|---|---|
+| **Explorer** | No enemies. No items. No combat. A pure maze walk from entrance to exit — find the stairs, descend, reach The Heart. Intended for players who want to experience the environment and narrative without pressure. |
+| **Standard** | The intended experience. Enemies, loot, permadeath. Balanced for a player willing to learn the systems. |
+| **Brutal** | Enemies hit harder and spawn more frequently. Items are rarer. The Warden appears earlier. For players who want the run to feel genuinely dangerous. |
+
+Explorer mode is also the natural starting point for development — the full maze and renderer work without any combat or item systems in place. Standard and Brutal modes layer on top once those systems exist.
+
+---
+
 ## UI / HUD
 
 Drawn on top of the canvas each frame:
