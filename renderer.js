@@ -90,6 +90,12 @@ function renderView(ctx, scene) {
           [near.l, near.b],
         ], shadeColor(COLORS.wallSide, shade));
       }
+    } else if (d > 1) {
+      // Side opening — draw the near face of the branch corridor entry wall.
+      // Projects 1 corridor-width further left from the far portal edge.
+      const wx = 2 * far.l - CX;
+      ctx.fillStyle = shadeColor(COLORS.wallSide, shade);
+      ctx.fillRect(wx, far.t, far.l - wx, far.b - far.t);
     }
 
     // Right wall: either a flat extension of the back wall, or a perspective trapezoid.
@@ -105,6 +111,10 @@ function renderView(ctx, scene) {
           [far.r,  far.b],
         ], shadeColor(COLORS.wallSide, shade));
       }
+    } else if (d > 1) {
+      const wx = 2 * far.r - CX;
+      ctx.fillStyle = shadeColor(COLORS.wallSide, shade);
+      ctx.fillRect(far.r, far.t, wx - far.r, far.b - far.t);
     }
   }
 }
