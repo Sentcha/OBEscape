@@ -93,12 +93,11 @@ function renderView(ctx, scene) {
     } else {
       // Side opening — draw the near face of the branch corridor entry wall.
       // x: 1 corridor-width further left from the far portal edge, clamped to screen.
-      // y: spans from the near portal top/bottom so depth-1 fills the full strip height.
+      // y: sized to the FAR portal so the face sits at the correct perspective depth.
+      //    Ceiling and floor of the junction reveal above and below via the background.
       const wx = Math.max(0, 2 * far.l - CX);
-      const yt = Math.min(near.t, far.t);
-      const yb = Math.max(near.b, far.b);
       ctx.fillStyle = shadeColor(COLORS.wallSide, shade);
-      ctx.fillRect(wx, yt, far.l - wx, yb - yt);
+      ctx.fillRect(wx, far.t, far.l - wx, far.b - far.t);
     }
 
     // Right wall: either a flat extension of the back wall, or a perspective trapezoid.
@@ -116,10 +115,8 @@ function renderView(ctx, scene) {
       }
     } else {
       const wx = Math.min(CANVAS_W, 2 * far.r - CX);
-      const yt = Math.min(near.t, far.t);
-      const yb = Math.max(near.b, far.b);
       ctx.fillStyle = shadeColor(COLORS.wallSide, shade);
-      ctx.fillRect(far.r, yt, wx - far.r, yb - yt);
+      ctx.fillRect(far.r, far.t, wx - far.r, far.b - far.t);
     }
   }
 }
