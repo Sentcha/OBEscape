@@ -57,11 +57,21 @@ function buildScene(map) {
 
   const scene = [];
   for (let d = 1; d <= 4; d++) {
+    // far = the tile d steps ahead (used for the back wall check).
+    // near = the tile d-1 steps ahead (used for left/right wall checks).
+    //
+    // The renderer draws each left/right wall segment from portal[d-1] to
+    // portal[d]. That segment's near end sits at depth d-1, so we check
+    // whether the near tile has a wall to its side — not the far tile.
+    // This ensures walls beside the player's own position are always visible.
     const fx = player.x + d * fwd.dx;
     const fy = player.y + d * fwd.dy;
+    const nx = player.x + (d - 1) * fwd.dx;
+    const ny = player.y + (d - 1) * fwd.dy;
+
     scene.push({
-      left:  isWall(fx + lft.dx, fy + lft.dy),
-      right: isWall(fx + rgt.dx, fy + rgt.dy),
+      left:  isWall(nx + lft.dx, ny + lft.dy),
+      right: isWall(nx + rgt.dx, ny + rgt.dy),
       back:  isWall(fx, fy),
     });
   }
