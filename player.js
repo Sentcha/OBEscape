@@ -70,8 +70,8 @@ function buildScene(map) {
     const ny = player.y + (d - 1) * fwd.dy;
 
     scene.push({
-      left:  isWall(nx + lft.dx, ny + lft.dy),
-      right: isWall(nx + rgt.dx, ny + rgt.dy),
+      left:  isWall(nx + lft.dx, ny + lft.dy) || isWall(fx + lft.dx, fy + lft.dy),
+      right: isWall(nx + rgt.dx, ny + rgt.dy) || isWall(fx + rgt.dx, fy + rgt.dy),
       back:  isWall(fx, fy),
     });
   }
