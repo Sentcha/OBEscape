@@ -69,10 +69,20 @@ function buildScene(map) {
     const nx = player.x + (d - 1) * fwd.dx;
     const ny = player.y + (d - 1) * fwd.dy;
 
+    const back      = isWall(fx, fy);
+    const nearLeft  = isWall(nx + lft.dx, ny + lft.dy);
+    const nearRight = isWall(nx + rgt.dx, ny + rgt.dy);
+    const farLeft   = isWall(fx + lft.dx, fy + lft.dy);
+    const farRight  = isWall(fx + rgt.dx, fy + rgt.dy);
+
     scene.push({
-      left:  isWall(nx + lft.dx, ny + lft.dy) || isWall(fx + lft.dx, fy + lft.dy),
-      right: isWall(nx + rgt.dx, ny + rgt.dy) || isWall(fx + rgt.dx, fy + rgt.dy),
-      back:  isWall(fx, fy),
+      back,
+      left:       nearLeft || farLeft,
+      right:      nearRight || farRight,
+      // flat = front-face extension of the back wall (not a side corridor wall).
+      // True when the near side is open but the far side is walled AND a back wall exists.
+      leftFlat:   !nearLeft  && farLeft  && back,
+      rightFlat:  !nearRight && farRight && back,
     });
   }
   return scene;

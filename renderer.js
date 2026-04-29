@@ -84,24 +84,35 @@ function renderView(ctx, scene) {
       ctx.fillRect(far.l, far.t, far.r - far.l, far.b - far.t);
     }
 
-    // Left wall: trapezoid connecting the near-left edge to the far-left edge.
+    // Left wall: either a flat extension of the back wall, or a perspective trapezoid.
     if (s.left) {
-      fillPoly(ctx, [
-        [near.l, near.t],
-        [far.l,  far.t],
-        [far.l,  far.b],
-        [near.l, near.b],
-      ], shadeColor(COLORS.wallSide, shade));
+      if (s.leftFlat) {
+        // Part of a perpendicular wall — flat rectangle at back-wall height, same color.
+        ctx.fillStyle = shadeColor(COLORS.wallBack, shade);
+        ctx.fillRect(near.l, far.t, far.l - near.l, far.b - far.t);
+      } else {
+        fillPoly(ctx, [
+          [near.l, near.t],
+          [far.l,  far.t],
+          [far.l,  far.b],
+          [near.l, near.b],
+        ], shadeColor(COLORS.wallSide, shade));
+      }
     }
 
-    // Right wall: trapezoid connecting the far-right edge to the near-right edge.
+    // Right wall: either a flat extension of the back wall, or a perspective trapezoid.
     if (s.right) {
-      fillPoly(ctx, [
-        [far.r,  far.t],
-        [near.r, near.t],
-        [near.r, near.b],
-        [far.r,  far.b],
-      ], shadeColor(COLORS.wallSide, shade));
+      if (s.rightFlat) {
+        ctx.fillStyle = shadeColor(COLORS.wallBack, shade);
+        ctx.fillRect(far.r, far.t, near.r - far.r, far.b - far.t);
+      } else {
+        fillPoly(ctx, [
+          [far.r,  far.t],
+          [near.r, near.t],
+          [near.r, near.b],
+          [far.r,  far.b],
+        ], shadeColor(COLORS.wallSide, shade));
+      }
     }
   }
 }
