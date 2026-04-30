@@ -100,6 +100,35 @@ window.addEventListener('load', () => {
   }
 
   // ------------------------------------------------------------------
+  // Debug command executor — shared by keyboard and touch paths.
+  // ------------------------------------------------------------------
+  function runDebugCmd(cmd) {
+    switch (cmd) {
+      case 'toggle': debug.enabled = !debug.enabled; break;
+      case 'n': debug.noclip  = !debug.noclip;  break;
+      case 'g': debug.godMode = !debug.godMode; break;
+      case 't': {
+        const raw = prompt('Teleport to x,y:', `${player.x},${player.y}`);
+        if (raw) {
+          const [tx, ty] = raw.split(',').map(s => parseInt(s.trim(), 10));
+          if (!isNaN(tx) && !isNaN(ty) &&
+              ty >= 0 && ty < map.length && tx >= 0 && tx < map[0].length)
+            { player.x = tx; player.y = ty; }
+        }
+        break;
+      }
+      case 'x':
+        outer: for (let y = 0; y < map.length; y++)
+          for (let x = 0; x < map[y].length; x++)
+            if (map[y][x] === TILE.STAIRS) { player.x = x; player.y = y; break outer; }
+        break;
+      case 'l': descend(); break;
+      case 'r': map = generateMaze(player.dungeonLevel); maxDepth = map[0].length - 2; break;
+    }
+    draw();
+  }
+
+  // ------------------------------------------------------------------
   // Main draw — called once on load and again after every player action.
   // ------------------------------------------------------------------
   function draw() {
@@ -113,6 +142,7 @@ window.addEventListener('load', () => {
     drawMinimap();
     drawHUD();
     drawDpad(ctx);
+    drawDebugPanel(ctx, map);
   }
 
   // ------------------------------------------------------------------
@@ -123,6 +153,12 @@ window.addEventListener('load', () => {
   document.addEventListener('keydown', (e) => {
     if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key)) {
       e.preventDefault();
+    }
+    // Debug panel toggle always intercepts backtick; command keys intercept when panel is open.
+    if (e.key === '`') { runDebugCmd('toggle'); return; }
+    if (debug.enabled) {
+      const k = e.key.toLowerCase();
+      if (k.length === 1 && 'ngtxlr'.includes(k)) { runDebugCmd(k); return; }
     }
     if (gameWon) return;
     if (handleKey(e, map)) {
@@ -135,8 +171,11 @@ window.addEventListener('load', () => {
   // check if it hit a D-pad button, then fire the same handleKey logic.
   function handlePointer(e) {
     e.preventDefault();
-    if (gameWon) return;
     const { x, y } = getCanvasXY(e, canvas);
+    // Debug panel is checked before game-won guard so the DBG button always works.
+    const dbgCmd = getDebugHit(x, y);
+    if (dbgCmd) { runDebugCmd(dbgCmd); return; }
+    if (gameWon) return;
     const key = getDpadKey(x, y);
     if (key && handleKey({ key }, map)) {
       if (map[player.y][player.x] === TILE.STAIRS) descend();

@@ -25,12 +25,15 @@ const player = {
 };
 
 // Move the player by (dx, dy) if the destination cell exists and is not a wall.
+// Noclip skips the wall check but still respects map bounds.
 function tryMove(map, dx, dy) {
   const nx = player.x + dx;
   const ny = player.y + dy;
-  if (map[ny] !== undefined && map[ny][nx] !== undefined && map[ny][nx] !== TILE.WALL) {
-    player.x = nx;
-    player.y = ny;
+  if (map[ny] !== undefined && map[ny][nx] !== undefined) {
+    if (debug.noclip || map[ny][nx] !== TILE.WALL) {
+      player.x = nx;
+      player.y = ny;
+    }
   }
 }
 
