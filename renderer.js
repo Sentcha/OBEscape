@@ -39,18 +39,28 @@ function shadeColor(hex, factor) {
 // Draw a staircase on the floor in the corridor section leading to a stairs tile.
 // Fills the floor trapezoid (between near and far portals' bottom edges) with
 // alternating tread/riser bands that converge toward the vanishing point.
+// Width is 80% of the corridor, centred, so the staircase reads as a tile
+// feature rather than a full-floor fill.
 function drawStairs(ctx, near, far, shade) {
   const N = 5;  // bands: tread, riser, tread, riser, tread (nearest → farthest)
+
+  // 10% margin each side → 80% of corridor width, applied in perspective at both ends.
+  const m = 0.10;
+  const nw = near.r - near.l;
+  const fw = far.r  - far.l;
+  const nl = near.l + nw * m,  nr = near.r - nw * m;
+  const fl = far.l  + fw * m,  fr = far.r  - fw * m;
+
   for (let i = 0; i < N; i++) {
     const t0 = 1 - i / N;        // near edge of this band (t=1 = player, t=0 = far portal)
     const t1 = 1 - (i + 1) / N;  // far edge of this band
 
     const y0  = Math.round(far.b + t0 * (near.b - far.b));
     const y1  = Math.round(far.b + t1 * (near.b - far.b));
-    const xl0 = Math.round(far.l + t0 * (near.l - far.l));
-    const xr0 = Math.round(far.r + t0 * (near.r - far.r));
-    const xl1 = Math.round(far.l + t1 * (near.l - far.l));
-    const xr1 = Math.round(far.r + t1 * (near.r - far.r));
+    const xl0 = Math.round(fl + t0 * (nl - fl));
+    const xr0 = Math.round(fr + t0 * (nr - fr));
+    const xl1 = Math.round(fl + t1 * (nl - fl));
+    const xr1 = Math.round(fr + t1 * (nr - fr));
 
     const color = i % 2 === 0
       ? shadeColor('#d4a840', shade)  // tread — warm lit surface
