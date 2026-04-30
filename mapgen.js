@@ -85,6 +85,26 @@ function generateMaze(dungeonLevel) {
   const stairsPos = findFarthestCell(map, 1, 1);
   map[stairsPos.y][stairsPos.x] = TILE.STAIRS;
 
+  // --- Scatter enemies on room nodes (odd x AND odd y) ---
+  // Exclude the player start (1,1) and the stairs cell.
+  const enemyCandidates = [];
+  for (let y = 1; y < size; y += 2)
+    for (let x = 1; x < size; x += 2)
+      if (map[y][x] === TILE.FLOOR &&
+          !(x === 1 && y === 1) &&
+          !(x === stairsPos.x && y === stairsPos.y))
+        enemyCandidates.push({ x, y });
+
+  // Fisher-Yates shuffle so enemies are spread randomly.
+  for (let i = enemyCandidates.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [enemyCandidates[i], enemyCandidates[j]] = [enemyCandidates[j], enemyCandidates[i]];
+  }
+
+  const enemyCount = Math.min(2 + dungeonLevel, 6);
+  for (let i = 0; i < Math.min(enemyCount, enemyCandidates.length); i++)
+    map[enemyCandidates[i].y][enemyCandidates[i].x] = TILE.ENEMY;
+
   return map;
 }
 

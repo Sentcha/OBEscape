@@ -115,6 +115,9 @@ function renderView(ctx, scene) {
     // Stairs: alternating tread/riser bands drawn on the floor ahead of the tile.
     if (s.stairs) drawStairs(ctx, near, far, shade);
 
+    // Enemy sprite: drawn centred in the far portal, on top of the back wall.
+    if (s.enemy) drawEnemy(ctx, far, shade, s.enemy.type);
+
     // Left wall: either a flat extension of the back wall, or a perspective trapezoid.
     if (s.left) {
       if (s.leftFlat) {

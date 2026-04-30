@@ -48,7 +48,7 @@ function tryMove(map, dx, dy) {
 // Out-of-bounds cells are treated as walls so the renderer always has
 // something to draw at the map's edges.
 //
-function buildScene(map, maxDepth) {
+function buildScene(map, maxDepth, enemies) {
   const fwd = DIR[player.facing];
   const rgt = { dx: -fwd.dy, dy:  fwd.dx }; // 90° clockwise from forward
   const lft = { dx:  fwd.dy, dy: -fwd.dx }; // 90° counter-clockwise
@@ -77,6 +77,7 @@ function buildScene(map, maxDepth) {
     const farTile   = tileAt(fx, fy);
     const back      = farTile === TILE.WALL;
     const stairs    = farTile === TILE.STAIRS;
+    const enemy     = enemies.find(e => e.x === fx && e.y === fy) ?? null;
     const nearLeft  = isWall(nx + lft.dx, ny + lft.dy);
     const nearRight = isWall(nx + rgt.dx, ny + rgt.dy);
     const farLeft   = isWall(fx + lft.dx, fy + lft.dy);
@@ -89,6 +90,7 @@ function buildScene(map, maxDepth) {
     scene.push({
       back,
       stairs,
+      enemy,
       // Only include farLeft/farRight when they form a flat back-wall extension.
       // farLeft && !back means a wall resuming after a branch opening — the next
       // depth segment's nearLeft will catch it, so drawing here would block the opening.

@@ -1,5 +1,5 @@
 // Entry point and game coordinator.
-// Milestone 5: Multiple levels with stairs.
+// Milestone 6: Enemies placed and visible in renderer.
 
 window.addEventListener('load', () => {
   const canvas = document.getElementById('gameCanvas');
@@ -7,6 +7,7 @@ window.addEventListener('load', () => {
 
   let map      = generateMaze(player.dungeonLevel);
   let maxDepth = map[0].length - 2;
+  let enemies  = loadEnemies(map, player.dungeonLevel);
   let gameWon  = false;
 
   // visited[row][col] — true once the player has been close enough to see that cell.
@@ -41,6 +42,7 @@ window.addEventListener('load', () => {
     player.facing = 2; // South — same as starting orientation
     map      = generateMaze(player.dungeonLevel);
     maxDepth = map[0].length - 2;
+    enemies  = loadEnemies(map, player.dungeonLevel);
     visited  = makeVisited();
     markVisited(1, 1);
   }
@@ -147,6 +149,7 @@ window.addEventListener('load', () => {
       case 'r':
         map = generateMaze(player.dungeonLevel);
         maxDepth = map[0].length - 2;
+        enemies = loadEnemies(map, player.dungeonLevel);
         visited = makeVisited();
         markVisited(player.x, player.y);
         break;
@@ -159,7 +162,7 @@ window.addEventListener('load', () => {
   // Main draw — called once on load and again after every player action.
   // ------------------------------------------------------------------
   function draw() {
-    renderView(ctx, buildScene(map, maxDepth));
+    renderView(ctx, buildScene(map, maxDepth, enemies));
 
     if (gameWon) {
       drawWinScreen();
