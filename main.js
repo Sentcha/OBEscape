@@ -9,6 +9,22 @@ window.addEventListener('load', () => {
   let maxDepth = map[0].length - 2;
   let gameWon  = false;
 
+  // visited[row][col] — true once the player has been close enough to see that cell.
+  // Reset whenever a new map is loaded; revealed in a 3×3 area around each step.
+  function makeVisited() {
+    return Array.from({ length: map.length }, () => new Array(map[0].length).fill(false));
+  }
+  function markVisited(x, y) {
+    for (let dy = -1; dy <= 1; dy++)
+      for (let dx = -1; dx <= 1; dx++) {
+        const ny = y + dy, nx = x + dx;
+        if (ny >= 0 && ny < map.length && nx >= 0 && nx < map[0].length)
+          visited[ny][nx] = true;
+      }
+  }
+  let visited = makeVisited();
+  markVisited(1, 1); // reveal the starting cell on load
+
   // ------------------------------------------------------------------
   // Level transition — called when the player steps onto TILE.STAIRS.
   // Increments dungeonLevel, generates a fresh map, and resets the
@@ -25,6 +41,8 @@ window.addEventListener('load', () => {
     player.facing = 2; // South — same as starting orientation
     map      = generateMaze(player.dungeonLevel);
     maxDepth = map[0].length - 2;
+    visited  = makeVisited();
+    markVisited(1, 1);
   }
 
   // ------------------------------------------------------------------
@@ -42,14 +60,17 @@ window.addEventListener('load', () => {
     ctx.fillStyle = 'rgba(0, 0, 0, 0.65)';
     ctx.fillRect(originX - 2, originY - 2, cols * CELL + 4, rows * CELL + 4);
 
-    // Cells
+    // Cells — unvisited areas stay black (fog of war).
     for (let row = 0; row < rows; row++) {
       for (let col = 0; col < cols; col++) {
-        const tile = map[row][col];
-        if      (tile === TILE.WALL)   ctx.fillStyle = '#1a1a1a';
-        else if (tile === TILE.STAIRS) ctx.fillStyle = '#4fc3f7';
-        else                           ctx.fillStyle = '#3d3225';
-
+        if (!visited[row][col]) {
+          ctx.fillStyle = '#000';
+        } else {
+          const tile = map[row][col];
+          if      (tile === TILE.WALL)   ctx.fillStyle = '#1a1a1a';
+          else if (tile === TILE.STAIRS) ctx.fillStyle = '#4fc3f7';
+          else                           ctx.fillStyle = '#3d3225';
+        }
         ctx.fillRect(originX + col * CELL, originY + row * CELL, CELL - 1, CELL - 1);
       }
     }
@@ -123,8 +144,14 @@ window.addEventListener('load', () => {
             if (map[y][x] === TILE.STAIRS) { player.x = x; player.y = y; break outer; }
         break;
       case 'l': descend(); break;
-      case 'r': map = generateMaze(player.dungeonLevel); maxDepth = map[0].length - 2; break;
+      case 'r':
+        map = generateMaze(player.dungeonLevel);
+        maxDepth = map[0].length - 2;
+        visited = makeVisited();
+        markVisited(player.x, player.y);
+        break;
     }
+    markVisited(player.x, player.y); // reveal wherever a debug command landed the player
     draw();
   }
 
@@ -162,6 +189,7 @@ window.addEventListener('load', () => {
     }
     if (gameWon) return;
     if (handleKey(e, map)) {
+      markVisited(player.x, player.y);
       if (map[player.y][player.x] === TILE.STAIRS) descend();
       draw();
     }
@@ -178,6 +206,7 @@ window.addEventListener('load', () => {
     if (gameWon) return;
     const key = getDpadKey(x, y);
     if (key && handleKey({ key }, map)) {
+      markVisited(player.x, player.y);
       if (map[player.y][player.x] === TILE.STAIRS) descend();
       draw();
     }
