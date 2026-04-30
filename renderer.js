@@ -36,6 +36,47 @@ function shadeColor(hex, factor) {
   return `rgb(${Math.round(r * factor)}, ${Math.round(g * factor)}, ${Math.round(b * factor)})`;
 }
 
+// Draw a retro side-profile staircase inside the far portal rectangle.
+// Renders N descending steps as tread (flat top) + riser (dark front face) pairs.
+// The tread of each step extends the full remaining width, giving the classic
+// profile-view silhouette of stairs going down into the dungeon.
+function drawStairs(ctx, far, shade) {
+  const N  = 5;
+  const pw = far.r - far.l;
+  const ph = far.b - far.t;
+  if (pw < 4 || ph < 4) return;
+
+  const totalW = pw * 0.72;
+  const totalH = ph * 0.68;
+  const startX = far.l + (pw - totalW) / 2;
+  const startY = far.t + ph * 0.16;
+
+  const stepW  = totalW / N;
+  const stepH  = totalH / N;
+  const treadH = Math.max(1, Math.round(stepH * 0.40));
+  const riserH = Math.max(1, Math.round(stepH - treadH));
+
+  const treadColor = shadeColor('#d4a040', Math.min(1, shade * 1.25));
+  const riserColor = shadeColor('#5c3008', shade);
+  const hiColor    = shadeColor('#f0e098', shade);
+
+  for (let i = 0; i < N; i++) {
+    const x  = Math.round(startX + i * stepW);
+    const y  = Math.round(startY + i * stepH);
+    const tw = Math.round(totalW - i * stepW);  // tread spans to right edge
+    const rw = Math.round(stepW);               // riser is one step wide
+
+    ctx.fillStyle = treadColor;
+    ctx.fillRect(x, y, tw, treadH);
+
+    ctx.fillStyle = hiColor;
+    ctx.fillRect(x, y, tw, 1);         // top-edge highlight
+
+    ctx.fillStyle = riserColor;
+    ctx.fillRect(x, y + treadH, rw, riserH);
+  }
+}
+
 // Draw a filled polygon from an array of [x, y] coordinate pairs.
 function fillPoly(ctx, points, color) {
   ctx.beginPath();
@@ -49,7 +90,7 @@ function fillPoly(ctx, points, color) {
 // Render the first-person corridor view.
 //
 // scene: array built by buildScene — one entry per depth level.
-//   Each entry: { back, left, right, leftFlat, rightFlat }
+//   Each entry: { back, stairs, left, right, leftFlat, rightFlat }
 //
 function renderView(ctx, scene) {
   // 1. Background: ceiling (top half) and floor (bottom half).
@@ -75,6 +116,9 @@ function renderView(ctx, scene) {
       ctx.fillStyle = shadeColor(COLORS.wallBack, shade);
       ctx.fillRect(far.l, far.t, far.r - far.l, far.b - far.t);
     }
+
+    // Stairs: retro descending-step graphic drawn in the far portal opening.
+    if (s.stairs) drawStairs(ctx, far, shade);
 
     // Left wall: either a flat extension of the back wall, or a perspective trapezoid.
     if (s.left) {

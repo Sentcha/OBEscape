@@ -50,10 +50,12 @@ function buildScene(map, maxDepth) {
   const rgt = { dx: -fwd.dy, dy:  fwd.dx }; // 90° clockwise from forward
   const lft = { dx:  fwd.dy, dy: -fwd.dx }; // 90° counter-clockwise
 
-  function isWall(x, y) {
-    if (y < 0 || y >= map.length || x < 0 || x >= map[0].length) return true;
-    return map[y][x] === TILE.WALL;
+  function tileAt(x, y) {
+    if (y < 0 || y >= map.length || x < 0 || x >= map[0].length) return TILE.WALL;
+    return map[y][x];
   }
+
+  function isWall(x, y) { return tileAt(x, y) === TILE.WALL; }
 
   const scene = [];
   for (let d = 1; d <= maxDepth; d++) {
@@ -69,7 +71,9 @@ function buildScene(map, maxDepth) {
     const nx = player.x + (d - 1) * fwd.dx;
     const ny = player.y + (d - 1) * fwd.dy;
 
-    const back      = isWall(fx, fy);
+    const farTile   = tileAt(fx, fy);
+    const back      = farTile === TILE.WALL;
+    const stairs    = farTile === TILE.STAIRS;
     const nearLeft  = isWall(nx + lft.dx, ny + lft.dy);
     const nearRight = isWall(nx + rgt.dx, ny + rgt.dy);
     const farLeft   = isWall(fx + lft.dx, fy + lft.dy);
@@ -81,6 +85,7 @@ function buildScene(map, maxDepth) {
     const rightFlat = !nearRight && farRight && back;
     scene.push({
       back,
+      stairs,
       // Only include farLeft/farRight when they form a flat back-wall extension.
       // farLeft && !back means a wall resuming after a branch opening — the next
       // depth segment's nearLeft will catch it, so drawing here would block the opening.
