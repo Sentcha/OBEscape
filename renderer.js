@@ -36,44 +36,27 @@ function shadeColor(hex, factor) {
   return `rgb(${Math.round(r * factor)}, ${Math.round(g * factor)}, ${Math.round(b * factor)})`;
 }
 
-// Draw a retro side-profile staircase inside the far portal rectangle.
-// Renders N descending steps as tread (flat top) + riser (dark front face) pairs.
-// The tread of each step extends the full remaining width, giving the classic
-// profile-view silhouette of stairs going down into the dungeon.
-function drawStairs(ctx, far, shade) {
-  const N  = 5;
-  const pw = far.r - far.l;
-  const ph = far.b - far.t;
-  if (pw < 4 || ph < 4) return;
-
-  const totalW = pw * 0.72;
-  const totalH = ph * 0.68;
-  const startX = far.l + (pw - totalW) / 2;
-  const startY = far.t + ph * 0.16;
-
-  const stepW  = totalW / N;
-  const stepH  = totalH / N;
-  const treadH = Math.max(1, Math.round(stepH * 0.40));
-  const riserH = Math.max(1, Math.round(stepH - treadH));
-
-  const treadColor = shadeColor('#d4a040', Math.min(1, shade * 1.25));
-  const riserColor = shadeColor('#5c3008', shade);
-  const hiColor    = shadeColor('#f0e098', shade);
-
+// Draw a staircase on the floor in the corridor section leading to a stairs tile.
+// Fills the floor trapezoid (between near and far portals' bottom edges) with
+// alternating tread/riser bands that converge toward the vanishing point.
+function drawStairs(ctx, near, far, shade) {
+  const N = 5;  // bands: tread, riser, tread, riser, tread (nearest → farthest)
   for (let i = 0; i < N; i++) {
-    const x  = Math.round(startX + i * stepW);
-    const y  = Math.round(startY + i * stepH);
-    const tw = Math.round(totalW - i * stepW);  // tread spans to right edge
-    const rw = Math.round(stepW);               // riser is one step wide
+    const t0 = 1 - i / N;        // near edge of this band (t=1 = player, t=0 = far portal)
+    const t1 = 1 - (i + 1) / N;  // far edge of this band
 
-    ctx.fillStyle = treadColor;
-    ctx.fillRect(x, y, tw, treadH);
+    const y0  = Math.round(far.b + t0 * (near.b - far.b));
+    const y1  = Math.round(far.b + t1 * (near.b - far.b));
+    const xl0 = Math.round(far.l + t0 * (near.l - far.l));
+    const xr0 = Math.round(far.r + t0 * (near.r - far.r));
+    const xl1 = Math.round(far.l + t1 * (near.l - far.l));
+    const xr1 = Math.round(far.r + t1 * (near.r - far.r));
 
-    ctx.fillStyle = hiColor;
-    ctx.fillRect(x, y, tw, 1);         // top-edge highlight
+    const color = i % 2 === 0
+      ? shadeColor('#d4a840', shade)  // tread — warm lit surface
+      : shadeColor('#281200', shade); // riser — shadow face
 
-    ctx.fillStyle = riserColor;
-    ctx.fillRect(x, y + treadH, rw, riserH);
+    fillPoly(ctx, [[xl1, y1], [xr1, y1], [xr0, y0], [xl0, y0]], color);
   }
 }
 
@@ -117,8 +100,8 @@ function renderView(ctx, scene) {
       ctx.fillRect(far.l, far.t, far.r - far.l, far.b - far.t);
     }
 
-    // Stairs: retro descending-step graphic drawn in the far portal opening.
-    if (s.stairs) drawStairs(ctx, far, shade);
+    // Stairs: alternating tread/riser bands drawn on the floor ahead of the tile.
+    if (s.stairs) drawStairs(ctx, near, far, shade);
 
     // Left wall: either a flat extension of the back wall, or a perspective trapezoid.
     if (s.left) {
