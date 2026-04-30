@@ -62,9 +62,11 @@ function drawStairs(ctx, near, far, shade) {
     const xl1 = Math.round(fl + t1 * (nl - fl));
     const xr1 = Math.round(fr + t1 * (nr - fr));
 
+    // Steps fade into darkness: nearest band full brightness, farthest at 20%.
+    const bandShade = shade * (1.0 - (i / (N - 1)) * 0.80);
     const color = i % 2 === 0
-      ? shadeColor('#d4a840', shade)  // tread — warm lit surface
-      : shadeColor('#281200', shade); // riser — shadow face
+      ? shadeColor('#d4a840', bandShade)  // tread — warm lit surface
+      : shadeColor('#281200', bandShade); // riser — shadow face
 
     fillPoly(ctx, [[xl1, y1], [xr1, y1], [xr0, y0], [xl0, y0]], color);
   }
