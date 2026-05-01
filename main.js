@@ -56,9 +56,9 @@ window.addEventListener('load', () => {
   function drawMinimap() {
     const cols    = map[0].length;
     const rows    = map.length;
-    const CELL    = Math.floor(120 / Math.max(rows, cols));
+    const CELL    = Math.floor(88 / Math.max(rows, cols));
     const originX = 10;
-    const originY = canvas.height - rows * CELL - 10;
+    const originY = VIEW_BOT + 8;
 
     // Dark backing panel
     ctx.fillStyle = 'rgba(0, 0, 0, 0.65)';
@@ -136,10 +136,10 @@ window.addEventListener('load', () => {
 
     // --- Top-left panel: HP bar + equipped gear ---
     ctx.fillStyle = 'rgba(0,0,0,0.55)';
-    ctx.fillRect(8, 8, 220, 62);
+    ctx.fillRect(8, 6, 220, 88);
 
     // HP bar
-    const barX = 36, barY = 14, barW = 160, barH = 14;
+    const barX = 36, barY = 16, barW = 160, barH = 14;
     ctx.font = serif;
     ctx.fillStyle = gold;
     ctx.fillText('HP', 12, 25);
@@ -164,22 +164,22 @@ window.addEventListener('load', () => {
     const wpn = player.equippedWeapon
       ? `${player.equippedWeapon.name.toUpperCase()}  +${player.equippedWeapon.attack}`
       : '--';
-    ctx.fillText(`[${wpn}]`, 12, 42);
+    ctx.fillText(`[${wpn}]`, 12, 52);
 
     // Armour row
     const arm = player.equippedArmor
       ? `${player.equippedArmor.name.toUpperCase()}  ${player.equippedArmor.durability}/${player.equippedArmor.maxDurability}`
       : '--';
-    ctx.fillText(`[${arm}]`, 12, 58);
+    ctx.fillText(`[${arm}]`, 12, 72);
 
     // --- Top-right: level indicator ---
     const roman = ROMAN[player.dungeonLevel - 1] || String(player.dungeonLevel);
     ctx.textAlign = 'right';
     ctx.font = 'bold 11px Georgia, serif';
     ctx.fillStyle = gold;
-    ctx.fillText('LEVEL', 790, 22);
+    ctx.fillText('LEVEL', 790, 28);
     ctx.font = 'bold 28px Georgia, serif';
-    ctx.fillText(roman, 790, 50);
+    ctx.fillText(roman, 790, 72);
     ctx.textAlign = 'left';
 
     // --- Bottom-centre: action prompt ---
@@ -188,7 +188,7 @@ window.addEventListener('load', () => {
       ctx.font = 'bold 13px Georgia, serif';
       const tw = ctx.measureText(prompt).width;
       const px = (canvas.width - tw) / 2;
-      const py = 568;
+      const py = 556;
       ctx.fillStyle = 'rgba(0,0,0,0.55)';
       ctx.fillRect(px - 8, py - 16, tw + 16, 22);
       ctx.fillStyle = gold;
@@ -265,6 +265,8 @@ window.addEventListener('load', () => {
   // Main draw — called once on load and again after every player action.
   // ------------------------------------------------------------------
   function draw() {
+    ctx.fillStyle = '#080808';
+    ctx.fillRect(0, 0, CANVAS_W, CANVAS_H);
     renderView(ctx, buildScene(map, maxDepth, enemies, items));
 
     if (gameWon) {

@@ -2,6 +2,8 @@ const CANVAS_W = 800;
 const CANVAS_H = 600;
 const CX = CANVAS_W / 2;
 const CY = CANVAS_H / 2;
+const VIEW_TOP = 100;
+const VIEW_BOT = 500;
 
 // A "portal" is the rectangular cross-section of the corridor at a given depth.
 // 1/d perspective: each deeper portal is proportionally smaller, converging on the center.
@@ -88,13 +90,17 @@ function fillPoly(ctx, points, color) {
 //   Each entry: { back, stairs, left, right, leftFlat, rightFlat }
 //
 function renderView(ctx, scene) {
-  // 1. Background: ceiling (top half) and floor (bottom half).
-  //    Walls will be painted over these.
+  ctx.save();
+  ctx.beginPath();
+  ctx.rect(0, VIEW_TOP, CANVAS_W, VIEW_BOT - VIEW_TOP);
+  ctx.clip();
+
+  // 1. Background: ceiling (top of view to centre) and floor (centre to bottom of view).
   ctx.fillStyle = COLORS.ceiling;
-  ctx.fillRect(0, 0, CANVAS_W, CY);
+  ctx.fillRect(0, VIEW_TOP, CANVAS_W, CY - VIEW_TOP);
 
   ctx.fillStyle = COLORS.floor;
-  ctx.fillRect(0, CY, CANVAS_W, CY);
+  ctx.fillRect(0, CY, CANVAS_W, VIEW_BOT - CY);
 
   // 2. Painter's algorithm — draw deepest depth first, depth 1 last.
   //    This ensures nearer walls paint over farther ones.
@@ -102,8 +108,8 @@ function renderView(ctx, scene) {
   for (let d = maxDepth; d >= 1; d--) {
     const s     = scene[d - 1];
     const far   = makePortal(d);
-    // For depth 1, the "near" boundary is the screen edge itself.
-    const near  = d > 1 ? makePortal(d - 1) : { l: 0, r: CANVAS_W, t: 0, b: CANVAS_H };
+    // For depth 1, the "near" boundary is the view edge (not the full canvas).
+    const near  = d > 1 ? makePortal(d - 1) : { l: 0, r: CANVAS_W, t: VIEW_TOP, b: VIEW_BOT };
     const shade = shadeAtDepth(d);
 
     // Back wall: a flat rectangle filling the portal at this depth.
@@ -164,4 +170,6 @@ function renderView(ctx, scene) {
       ctx.fillRect(far.r, far.t, wx - far.r, far.b - far.t);
     }
   }
+
+  ctx.restore();
 }

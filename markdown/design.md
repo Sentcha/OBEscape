@@ -89,8 +89,8 @@ The fresh bodies suggest someone on the surface knows the labyrinth exists and h
 Grid-based first-person perspective renderer. No raycasting — the view is constructed by checking what exists at each depth level (1–4 tiles ahead) and drawing the corresponding geometry using the painter's algorithm (back to front).
 
 ### Draw Order (each frame)
-1. Ceiling fill (full screen)
-2. Floor fill (full screen)
+1. Ceiling fill (view area: y 100–300)
+2. Floor fill (view area: y 300–500)
 3. For each depth level, farthest to nearest:
    - Back wall polygon (if wall present)
    - Left wall slice (trapezoid, if wall present)
@@ -312,15 +312,22 @@ Explorer mode is also the natural starting point for development — the full ma
 
 ## UI / HUD
 
-Drawn on top of the canvas each frame:
+The canvas is 800×600. HUD elements occupy two 100px horizontal strips; the first-person view is clipped to the 400px zone between them.
 
-- **Top left**: Current HP bar (gold outline, red fill)
-- **Top right**: Dungeon level indicator ("Level III")
+| Zone | y range | Contents |
+|---|---|---|
+| Top strip | 0–99 | HP bar + weapon/armour rows (left), level indicator (right) |
+| View | 100–499 | First-person corridor render |
+| Bottom strip | 500–599 | Minimap (left), action prompt (centre), build info (right) |
+| D-pad | overlaid | Touch controls overlaid on the view (bottom-right), straddles boundary |
+
+- **Top left**: HP bar (gold outline, red fill) + equipped weapon and armour rows
+- **Top right**: Dungeon level indicator (Roman numerals I–V)
 - **Bottom left**: Minimap (small grid, fog of war, reveals explored tiles)
-- **Bottom center**: Action prompt ("E to pick up" etc.)
-- **Bottom right**: Gold count
+- **Bottom centre**: Contextual action prompt (STAIRS DOWN / item name / ENEMY)
+- **Bottom right**: Build info
 
-Font style: All-caps, serif or slab-serif to match Egyptian aesthetic.
+Font style: All-caps serif (Georgia).
 
 ---
 
