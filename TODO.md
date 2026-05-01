@@ -3,6 +3,7 @@
 ## Known Issues
 - [ ] Fix how stairs are drawn
 - [ ] Support side visibility for monsters
+- [ ] Redesign enemy sprites
 
 ## Milestones
 - [x] M1: Static corridor view renders on canvas
