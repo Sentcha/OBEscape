@@ -188,7 +188,7 @@ window.addEventListener('load', () => {
       ctx.font = 'bold 13px Georgia, serif';
       const tw = ctx.measureText(prompt).width;
       const px = (canvas.width - tw) / 2;
-      const py = 556;
+      const py = VIEW_BOT + 50;
       ctx.fillStyle = 'rgba(0,0,0,0.55)';
       ctx.fillRect(px - 8, py - 16, tw + 16, 22);
       ctx.fillStyle = gold;
