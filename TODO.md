@@ -5,6 +5,7 @@
 - [ ] Support side visibility for monsters
 - [ ] Redesign enemy sprites
 - [ ] Update sprites for loot
+- [ ] Update compass sprite
 
 ## Milestones
 - [x] M1: Static corridor view renders on canvas
