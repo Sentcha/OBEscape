@@ -21,7 +21,6 @@ const player = {
   maxHp:        20,
   dungeonLevel:    1,
   inventory:       [],
-  gold:            0,
   equippedWeapon:  { type: 'bowieKnife', name: 'Bowie Knife', attack: 4, itemType: 'weapon' },
   equippedArmor:   null,
 };
