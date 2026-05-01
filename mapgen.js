@@ -105,6 +105,21 @@ function generateMaze(dungeonLevel) {
   for (let i = 0; i < Math.min(enemyCount, enemyCandidates.length); i++)
     map[enemyCandidates[i].y][enemyCandidates[i].x] = TILE.ENEMY;
 
+  // --- Scatter items on remaining floor room nodes ---
+  const itemCandidates = [];
+  for (let y = 1; y < size; y += 2)
+    for (let x = 1; x < size; x += 2)
+      if (map[y][x] === TILE.FLOOR && !(x === 1 && y === 1))
+        itemCandidates.push({ x, y });
+
+  for (let i = itemCandidates.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [itemCandidates[i], itemCandidates[j]] = [itemCandidates[j], itemCandidates[i]];
+  }
+
+  for (let i = 0; i < Math.min(3, itemCandidates.length); i++)
+    map[itemCandidates[i].y][itemCandidates[i].x] = TILE.ITEM;
+
   return map;
 }
 

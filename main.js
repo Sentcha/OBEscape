@@ -1,5 +1,5 @@
 // Entry point and game coordinator.
-// Milestone 6: Enemies placed and visible in renderer.
+// Milestone 8: Items and inventory.
 
 window.addEventListener('load', () => {
   const canvas = document.getElementById('gameCanvas');
@@ -8,6 +8,7 @@ window.addEventListener('load', () => {
   let map      = generateMaze(player.dungeonLevel);
   let maxDepth = map[0].length - 2;
   let enemies  = loadEnemies(map, player.dungeonLevel);
+  let items    = loadItems(map, player.dungeonLevel);
   let gameWon  = false;
 
   // visited[row][col] — true once the player has been close enough to see that cell.
@@ -43,6 +44,7 @@ window.addEventListener('load', () => {
     map      = generateMaze(player.dungeonLevel);
     maxDepth = map[0].length - 2;
     enemies  = loadEnemies(map, player.dungeonLevel);
+    items    = loadItems(map, player.dungeonLevel);
     visited  = makeVisited();
     markVisited(1, 1);
   }
@@ -77,9 +79,37 @@ window.addEventListener('load', () => {
       }
     }
 
+    // Item dots (amber) — visible once the cell has been visited
+    ctx.fillStyle = '#ffe066';
+    for (const it of items)
+      if (visited[it.y][it.x])
+        ctx.fillRect(originX + it.x * CELL, originY + it.y * CELL, CELL - 1, CELL - 1);
+
     // Player dot (gold)
     ctx.fillStyle = '#f5d485';
     ctx.fillRect(originX + player.x * CELL, originY + player.y * CELL, CELL - 1, CELL - 1);
+  }
+
+  // ------------------------------------------------------------------
+  // Item pickup — called after every successful move.
+  // ------------------------------------------------------------------
+  function pickupItem(item) {
+    switch (item.itemType) {
+      case 'currency':
+        player.gold += item.value;
+        break;
+      case 'consumable':
+        player.hp = Math.min(player.hp + item.heal, player.maxHp);
+        break;
+      case 'weapon':
+        if (!player.equippedWeapon) player.equippedWeapon = item;
+        else player.inventory.push(item);
+        break;
+      case 'armor':
+        if (!player.equippedArmor) player.equippedArmor = item;
+        else player.inventory.push(item);
+        break;
+    }
   }
 
   // ------------------------------------------------------------------
@@ -91,6 +121,14 @@ window.addEventListener('load', () => {
     ctx.fillText(
       `Level ${player.dungeonLevel}    (${player.x}, ${player.y})    Facing: ${FACING_NAMES[player.facing]}`,
       10, 22
+    );
+
+    // Inventory line
+    const wpn = player.equippedWeapon ? player.equippedWeapon.name : '--';
+    const arm = player.equippedArmor  ? player.equippedArmor.name  : '--';
+    ctx.fillText(
+      `HP: ${player.hp}/${player.maxHp}   Gold: ${player.gold}   Weapon: ${wpn}   Armor: ${arm}`,
+      10, 42
     );
 
     // Build info — bottom-right corner.
@@ -150,6 +188,7 @@ window.addEventListener('load', () => {
         map = generateMaze(player.dungeonLevel);
         maxDepth = map[0].length - 2;
         enemies = loadEnemies(map, player.dungeonLevel);
+        items   = loadItems(map, player.dungeonLevel);
         visited = makeVisited();
         markVisited(player.x, player.y);
         break;
@@ -162,7 +201,7 @@ window.addEventListener('load', () => {
   // Main draw — called once on load and again after every player action.
   // ------------------------------------------------------------------
   function draw() {
-    renderView(ctx, buildScene(map, maxDepth, enemies));
+    renderView(ctx, buildScene(map, maxDepth, enemies, items));
 
     if (gameWon) {
       drawWinScreen();
@@ -193,6 +232,8 @@ window.addEventListener('load', () => {
     if (gameWon) return;
     if (handleKey(e, map)) {
       markVisited(player.x, player.y);
+      const itemIdx = items.findIndex(it => it.x === player.x && it.y === player.y);
+      if (itemIdx !== -1) pickupItem(items.splice(itemIdx, 1)[0]);
       if (map[player.y][player.x] === TILE.STAIRS) descend();
       draw();
     }
@@ -210,6 +251,8 @@ window.addEventListener('load', () => {
     const key = getDpadKey(x, y);
     if (key && handleKey({ key }, map)) {
       markVisited(player.x, player.y);
+      const itemIdx = items.findIndex(it => it.x === player.x && it.y === player.y);
+      if (itemIdx !== -1) pickupItem(items.splice(itemIdx, 1)[0]);
       if (map[player.y][player.x] === TILE.STAIRS) descend();
       draw();
     }

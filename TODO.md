@@ -13,7 +13,7 @@
 - [x] M5: Multiple levels with stairs
 - [x] M6: Enemies placed and visible in renderer
 - [ ] M7: Turn-based combat
-- [ ] M8: Items and inventory
+- [x] M8: Items and inventory
 - [ ] M9: HUD and minimap
 - [ ] M10: Main menu, game over screen, win screen
 - [ ] M11: Polish — sound (optional), hieroglyph decorations
