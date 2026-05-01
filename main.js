@@ -97,6 +97,44 @@ window.addEventListener('load', () => {
   }
 
   // ------------------------------------------------------------------
+  // Compass rose — rotates so current facing direction is always at top.
+  // ------------------------------------------------------------------
+  function drawCompass(ctx, facing) {
+    const cx   = 145;
+    const cy   = VIEW_BOT + 50;
+    const R    = 30;
+    const gold = '#f5d485';
+
+    ctx.beginPath();
+    ctx.arc(cx, cy, R, 0, Math.PI * 2);
+    ctx.fillStyle = 'rgba(0,0,0,0.65)';
+    ctx.fill();
+    ctx.strokeStyle = '#6b4a1a';
+    ctx.lineWidth = 1;
+    ctx.stroke();
+
+    ctx.save();
+    ctx.translate(cx, cy);
+    ctx.rotate(-facing * Math.PI / 2);
+
+    const labels = ['N', 'E', 'S', 'W'];
+    ctx.font = 'bold 9px Georgia, serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    for (let i = 0; i < 4; i++) {
+      const a  = i * Math.PI / 2 - Math.PI / 2;
+      const tx = Math.cos(a) * (R - 8);
+      const ty = Math.sin(a) * (R - 8);
+      ctx.fillStyle = labels[i] === 'N' ? '#e03030' : gold;
+      ctx.fillText(labels[i], tx, ty);
+    }
+
+    ctx.restore();
+    ctx.textAlign = 'left';
+    ctx.textBaseline = 'alphabetic';
+  }
+
+  // ------------------------------------------------------------------
   // Item pickup — called after every successful move.
   // ------------------------------------------------------------------
   function pickupItem(item) {
@@ -201,6 +239,8 @@ window.addEventListener('load', () => {
     const buildStr = `${VERSION.branch}@${VERSION.commit}  ${VERSION.date}`;
     const bw = ctx.measureText(buildStr).width;
     ctx.fillText(buildStr, canvas.width - bw - 10, canvas.height - 10);
+
+    drawCompass(ctx, player.facing);
   }
 
   // ------------------------------------------------------------------
