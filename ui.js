@@ -6,7 +6,7 @@
 // canvas space before checking button hits. See getCanvasXY() below.
 
 const DPAD_CX   = 700; // center x of the d-pad cluster in canvas pixels
-const DPAD_CY   = 480; // center y
+const DPAD_CY   = VIEW_BOT - BTN_SIZE - BTN_HALF - 2; // bottom of view
 const BTN_SIZE  = 60;  // width and height of each button
 const BTN_HALF  = BTN_SIZE / 2;
 const ARROW_R   = 16;  // half-size of the arrow triangle inside each button
