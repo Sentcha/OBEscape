@@ -1,5 +1,5 @@
 // Entry point and game coordinator.
-// Milestone 8: Items and inventory.
+// Milestone 9: HUD and minimap.
 
 window.addEventListener('load', () => {
   const canvas = document.getElementById('gameCanvas');
@@ -85,6 +85,12 @@ window.addEventListener('load', () => {
       if (visited[it.y][it.x])
         ctx.fillRect(originX + it.x * CELL, originY + it.y * CELL, CELL - 1, CELL - 1);
 
+    // Enemy dots (red)
+    ctx.fillStyle = '#e03030';
+    for (const en of enemies)
+      if (visited[en.y][en.x])
+        ctx.fillRect(originX + en.x * CELL, originY + en.y * CELL, CELL - 1, CELL - 1);
+
     // Player dot (gold)
     ctx.fillStyle = '#f5d485';
     ctx.fillRect(originX + player.x * CELL, originY + player.y * CELL, CELL - 1, CELL - 1);
@@ -107,30 +113,94 @@ window.addEventListener('load', () => {
     }
   }
 
+  const ROMAN = ['I', 'II', 'III', 'IV', 'V'];
+
+  // Returns a contextual prompt string for the tile 1 step ahead, or null.
+  function getActionPrompt() {
+    const d  = DIR[player.facing];
+    const nx = player.x + d.dx;
+    const ny = player.y + d.dy;
+    if (map[ny]?.[nx] === TILE.STAIRS) return 'STAIRS DOWN';
+    const item = items.find(it => it.x === nx && it.y === ny);
+    if (item) return item.name.toUpperCase();
+    if (enemies.find(e => e.x === nx && e.y === ny)) return 'ENEMY';
+    return null;
+  }
+
   // ------------------------------------------------------------------
-  // HUD — temporary position readout until the full HUD arrives in M9.
+  // HUD — full M9 layout.
   // ------------------------------------------------------------------
   function drawHUD() {
-    ctx.fillStyle = '#f5d485';
-    ctx.font = 'bold 14px monospace';
-    ctx.fillText(
-      `Level ${player.dungeonLevel}    (${player.x}, ${player.y})    Facing: ${FACING_NAMES[player.facing]}`,
-      10, 22
-    );
+    const gold  = '#f5d485';
+    const serif = 'bold 12px Georgia, serif';
 
-    // Inventory line
+    // --- Top-left panel: HP bar + equipped gear ---
+    ctx.fillStyle = 'rgba(0,0,0,0.55)';
+    ctx.fillRect(8, 8, 220, 62);
+
+    // HP bar
+    const barX = 36, barY = 14, barW = 160, barH = 14;
+    ctx.font = serif;
+    ctx.fillStyle = gold;
+    ctx.fillText('HP', 12, 25);
+
+    // bar fill (red)
+    const fill = Math.round(barW * Math.max(0, player.hp / player.maxHp));
+    ctx.fillStyle = '#c03030';
+    ctx.fillRect(barX, barY, fill, barH);
+    // bar border (gold)
+    ctx.strokeStyle = gold;
+    ctx.lineWidth = 1;
+    ctx.strokeRect(barX, barY, barW, barH);
+
+    // HP numbers right of bar
+    ctx.font = serif;
+    ctx.fillStyle = gold;
+    ctx.textAlign = 'right';
+    ctx.fillText(`${player.hp} / ${player.maxHp}`, 228, 25);
+    ctx.textAlign = 'left';
+
+    // Weapon row
     const wpn = player.equippedWeapon
-      ? `${player.equippedWeapon.name} +${player.equippedWeapon.attack}` : '--';
-    const arm = player.equippedArmor
-      ? `${player.equippedArmor.name} ${player.equippedArmor.durability}/${player.equippedArmor.maxDurability}` : '--';
-    ctx.fillText(`HP: ${player.hp}/${player.maxHp}   [${wpn}]   [${arm}]`, 10, 42);
+      ? `${player.equippedWeapon.name.toUpperCase()}  +${player.equippedWeapon.attack}`
+      : '--';
+    ctx.fillText(`[${wpn}]`, 12, 42);
 
-    // Build info — bottom-right corner.
-    ctx.font = 'bold 15px monospace';
-    ctx.fillStyle = '#f5d485';
+    // Armour row
+    const arm = player.equippedArmor
+      ? `${player.equippedArmor.name.toUpperCase()}  ${player.equippedArmor.durability}/${player.equippedArmor.maxDurability}`
+      : '--';
+    ctx.fillText(`[${arm}]`, 12, 58);
+
+    // --- Top-right: level indicator ---
+    const roman = ROMAN[player.dungeonLevel - 1] || String(player.dungeonLevel);
+    ctx.textAlign = 'right';
+    ctx.font = 'bold 11px Georgia, serif';
+    ctx.fillStyle = gold;
+    ctx.fillText('LEVEL', 790, 22);
+    ctx.font = 'bold 28px Georgia, serif';
+    ctx.fillText(roman, 790, 50);
+    ctx.textAlign = 'left';
+
+    // --- Bottom-centre: action prompt ---
+    const prompt = getActionPrompt();
+    if (prompt) {
+      ctx.font = 'bold 13px Georgia, serif';
+      const tw = ctx.measureText(prompt).width;
+      const px = (canvas.width - tw) / 2;
+      const py = 568;
+      ctx.fillStyle = 'rgba(0,0,0,0.55)';
+      ctx.fillRect(px - 8, py - 16, tw + 16, 22);
+      ctx.fillStyle = gold;
+      ctx.fillText(prompt, px, py);
+    }
+
+    // --- Bottom-right: build info ---
+    ctx.font = 'bold 11px monospace';
+    ctx.fillStyle = 'rgba(245,212,133,0.45)';
     const buildStr = `${VERSION.branch}@${VERSION.commit}  ${VERSION.date}`;
-    const tw = ctx.measureText(buildStr).width;
-    ctx.fillText(buildStr, canvas.width - tw - 10, canvas.height - 10);
+    const bw = ctx.measureText(buildStr).width;
+    ctx.fillText(buildStr, canvas.width - bw - 10, canvas.height - 10);
   }
 
   // ------------------------------------------------------------------

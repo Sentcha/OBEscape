@@ -34,6 +34,7 @@ function drawDebugPanel(ctx, map) {
 
   const rows = [
     '── DEBUG ──────────────────',
+    `(${player.x},${player.y})  ${FACING_NAMES[player.facing].toUpperCase()}`,
     ...DBG_LABELS.map(fn => fn()),
     `stairs (${sx},${sy})  ${map[0].length}\xD7${map.length}`,
   ];
@@ -50,7 +51,7 @@ function drawDebugPanel(ctx, map) {
 
   ctx.font = 'bold 13px monospace';
   rows.forEach((row, i) => {
-    ctx.fillStyle = i === 0 ? '#f5d485' : '#c0c0c0';
+    ctx.fillStyle = i <= 1 ? '#f5d485' : '#c0c0c0';
     ctx.fillText(row, px + DBG_PAD.x, panelY + DBG_PAD.y + (i + 1) * DBG_ROW_H - 6);
   });
 }
@@ -63,8 +64,8 @@ function getDebugHit(cx, cy) {
   if (!debug.enabled) return null;
   const panelY = DBG_BTN.y + DBG_BTN.h;
   if (cx < DBG_PANEL.x || cx >= DBG_PANEL.x + DBG_PANEL.w) return null;
-  // Row 0 = title (non-interactive); rows 1..N = commands.
+  // Row 0 = title, row 1 = position (both non-interactive); rows 2..N+1 = commands.
   const row = Math.floor((cy - panelY - DBG_PAD.y) / DBG_ROW_H);
-  if (row >= 1 && row <= DBG_CMDS.length) return DBG_CMDS[row - 1];
+  if (row >= 2 && row <= DBG_CMDS.length + 1) return DBG_CMDS[row - 2];
   return null;
 }
