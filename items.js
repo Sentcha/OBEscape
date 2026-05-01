@@ -1,35 +1,51 @@
 const ITEM_TYPE = {
-  GOLD:    'gold',
-  POTION:  'potion',
-  KHOPESH: 'khopesh',
-  SHIELD:  'shield',
+  BOWIE_KNIFE:    'bowieKnife',
+  PICKAXE_HANDLE: 'pickaxeHandle',
+  REVOLVER:       'revolver',
+  MACHETE:        'machete',
+  ALIEN_ROD:      'alienRod',
+  BANDAGES:       'bandages',
+  LAUDANUM:       'laudanum',
+  LEATHER_VEST:   'leatherVest',
+  SURVEY_COAT:    'surveyCoat',
+  ALIEN_PLATE:    'alienPlate',
 };
 
+// Items available per dungeon level — scarce, colonial on upper floors,
+// alien on lower floors.
 const LEVEL_ITEMS = {
-  1: ['gold', 'potion'],
-  2: ['gold', 'potion', 'khopesh'],
-  3: ['gold', 'potion', 'khopesh', 'shield'],
-  4: ['gold', 'potion', 'khopesh', 'shield'],
-  5: ['gold', 'potion', 'khopesh', 'shield'],
+  1: ['bandages', 'pickaxeHandle', 'leatherVest'],
+  2: ['bandages', 'revolver',      'leatherVest', 'surveyCoat', 'machete'],
+  3: ['bandages', 'laudanum',      'surveyCoat',  'machete',    'revolver'],
+  4: ['laudanum', 'machete',       'surveyCoat',  'alienPlate', 'alienRod'],
+  5: ['laudanum', 'alienRod',      'alienPlate'],
 };
 
 const ITEM_STATS = {
-  gold:    { name: 'Gold',    value:   10, itemType: 'currency'   },
-  potion:  { name: 'Potion',  heal:     8, itemType: 'consumable' },
-  khopesh: { name: 'Khopesh', attack:   4, itemType: 'weapon'     },
-  shield:  { name: 'Shield',  defense:  2, itemType: 'armor'      },
+  bowieKnife:    { name: 'Bowie Knife',    attack:  4,                    itemType: 'weapon'     },
+  pickaxeHandle: { name: 'Pickaxe Handle', attack:  5,                    itemType: 'weapon'     },
+  revolver:      { name: 'Revolver',       attack:  7,                    itemType: 'weapon'     },
+  machete:       { name: 'Machete',        attack:  5,                    itemType: 'weapon'     },
+  alienRod:      { name: 'Alien Rod',      attack:  9,                    itemType: 'weapon'     },
+  bandages:      { name: 'Bandages',       heal:    8,                    itemType: 'consumable' },
+  laudanum:      { name: 'Laudanum',       heal:   14,                    itemType: 'consumable' },
+  leatherVest:   { name: 'Leather Vest',   defense: 1, maxDurability: 3,  itemType: 'armor'      },
+  surveyCoat:    { name: 'Survey Coat',    defense: 2, maxDurability: 4,  itemType: 'armor'      },
+  alienPlate:    { name: 'Alien Plate',    defense: 4, maxDurability: 2,  itemType: 'armor'      },
 };
 
-// Scan map for TILE.ITEM markers, build live item objects, replace tiles with TILE.FLOOR.
+// Scan map for TILE.ITEM markers, build live item objects, replace with TILE.FLOOR.
 function loadItems(map, dungeonLevel) {
-  const pool  = LEVEL_ITEMS[dungeonLevel] || ['gold', 'potion'];
+  const pool  = LEVEL_ITEMS[dungeonLevel] || ['bandages'];
   const items = [];
   for (let y = 0; y < map.length; y++)
     for (let x = 0; x < map[y].length; x++)
       if (map[y][x] === TILE.ITEM) {
         const type  = pool[Math.floor(Math.random() * pool.length)];
         const stats = ITEM_STATS[type];
-        items.push({ x, y, type, ...stats });
+        const item  = { x, y, type, ...stats };
+        if (item.itemType === 'armor') item.durability = stats.maxDurability;
+        items.push(item);
         map[y][x] = TILE.FLOOR;
       }
   return items;
@@ -42,95 +58,177 @@ function drawItem(ctx, far, shade, type) {
   const pw = far.r - far.l;
   const ph = far.b - far.t;
   switch (type) {
-    case ITEM_TYPE.GOLD:    drawGoldPile(ctx, cx, by, pw, ph, shade); break;
-    case ITEM_TYPE.POTION:  drawPotion  (ctx, cx, by, pw, ph, shade); break;
-    case ITEM_TYPE.KHOPESH: drawKhopesh (ctx, cx, by, pw, ph, shade); break;
-    case ITEM_TYPE.SHIELD:  drawShield  (ctx, cx, by, pw, ph, shade); break;
+    case ITEM_TYPE.BOWIE_KNIFE:    drawBowieKnife   (ctx, cx, by, pw, ph, shade); break;
+    case ITEM_TYPE.PICKAXE_HANDLE: drawPickaxeHandle(ctx, cx, by, pw, ph, shade); break;
+    case ITEM_TYPE.REVOLVER:       drawRevolver     (ctx, cx, by, pw, ph, shade); break;
+    case ITEM_TYPE.MACHETE:        drawMachete      (ctx, cx, by, pw, ph, shade); break;
+    case ITEM_TYPE.ALIEN_ROD:      drawAlienRod     (ctx, cx, by, pw, ph, shade); break;
+    case ITEM_TYPE.BANDAGES:       drawBandages     (ctx, cx, by, pw, ph, shade); break;
+    case ITEM_TYPE.LAUDANUM:       drawLaudanum     (ctx, cx, by, pw, ph, shade); break;
+    case ITEM_TYPE.LEATHER_VEST:   drawLeatherVest  (ctx, cx, by, pw, ph, shade); break;
+    case ITEM_TYPE.SURVEY_COAT:    drawSurveyCoat   (ctx, cx, by, pw, ph, shade); break;
+    case ITEM_TYPE.ALIEN_PLATE:    drawAlienPlate   (ctx, cx, by, pw, ph, shade); break;
   }
 }
 
 // ---------------------------------------------------------------------------
-// Item sprites — all drawn relative to the far portal, sitting on the floor
+// Item sprites — silhouettes sitting in the lower third of the portal
 // ---------------------------------------------------------------------------
 
-function drawGoldPile(ctx, cx, by, pw, ph, shade) {
-  const offsets = [[-0.06, 0], [0, -0.03], [0.06, 0]];
-  const color   = shadeColor('#f5d485', shade);
-  const hiColor = shadeColor('#fff8c0', shade);
-  for (const [ox, oy] of offsets) {
-    const ex = cx + pw * ox, ey = by - ph * (0.04 + oy);
-    ctx.beginPath();
-    ctx.ellipse(ex, ey, pw * 0.08, ph * 0.04, 0, 0, Math.PI * 2);
-    ctx.fillStyle = color;
-    ctx.fill();
-    ctx.beginPath();
-    ctx.ellipse(ex - pw * 0.01, ey - ph * 0.01, pw * 0.03, ph * 0.015, 0, 0, Math.PI * 2);
-    ctx.fillStyle = hiColor;
-    ctx.fill();
-  }
-}
-
-function drawPotion(ctx, cx, by, pw, ph, shade) {
-  const bodyColor = shadeColor('#4fc3f7', shade);
-  const hiColor   = shadeColor('#a0e8ff', shade);
-  const capColor  = shadeColor('#b87a28', shade);
-
-  // Body
-  ctx.beginPath();
-  ctx.ellipse(cx, by - ph * 0.14, pw * 0.07, ph * 0.12, 0, 0, Math.PI * 2);
-  ctx.fillStyle = bodyColor;
-  ctx.fill();
-
-  // Highlight
-  ctx.beginPath();
-  ctx.ellipse(cx - pw * 0.02, by - ph * 0.17, pw * 0.03, ph * 0.05, 0, 0, Math.PI * 2);
-  ctx.fillStyle = hiColor;
-  ctx.fill();
-
-  // Neck
-  ctx.fillStyle = capColor;
-  ctx.fillRect(cx - pw * 0.02, by - ph * 0.29, pw * 0.04, ph * 0.05);
-
-  // Stopper
-  ctx.fillRect(cx - pw * 0.03, by - ph * 0.34, pw * 0.06, ph * 0.03);
-}
-
-function drawKhopesh(ctx, cx, by, pw, ph, shade) {
-  const bladeColor  = shadeColor('#c8c8c8', shade);
-  const handleColor = shadeColor('#3a2010', shade);
-
+function drawBowieKnife(ctx, cx, by, pw, ph, shade) {
+  // Blade
+  ctx.fillStyle = shadeColor('#c0c0c0', shade);
+  ctx.fillRect(cx - pw * 0.0125, by - ph * 0.32, pw * 0.025, ph * 0.26);
+  // Crossguard
+  ctx.fillStyle = shadeColor('#8b6914', shade);
+  ctx.fillRect(cx - pw * 0.04,   by - ph * 0.08, pw * 0.08,  ph * 0.02);
   // Handle
-  ctx.fillStyle = handleColor;
-  ctx.fillRect(cx - pw * 0.015, by - ph * 0.20, pw * 0.03, ph * 0.18);
-
-  // Blade — sickle shape
-  fillPoly(ctx, [
-    [cx,             by - ph * 0.20],
-    [cx + pw * 0.18, by - ph * 0.22],
-    [cx + pw * 0.22, by - ph * 0.30],
-    [cx + pw * 0.10, by - ph * 0.38],
-    [cx + pw * 0.02, by - ph * 0.30],
-  ], bladeColor);
+  ctx.fillStyle = shadeColor('#5a3010', shade);
+  ctx.fillRect(cx - pw * 0.015,  by - ph * 0.06, pw * 0.03,  ph * 0.06);
 }
 
-function drawShield(ctx, cx, by, pw, ph, shade) {
-  const outerColor  = shadeColor('#b87a28', shade);
-  const innerColor  = shadeColor('#8b5e1a', shade);
-  const bossColor   = shadeColor('#f5d485', shade);
-  const ey = by - ph * 0.17;
+function drawPickaxeHandle(ctx, cx, by, pw, ph, shade) {
+  const woodColor = shadeColor('#8b6030', shade);
+  // Shaft
+  ctx.fillStyle = woodColor;
+  ctx.fillRect(cx - pw * 0.025, by - ph * 0.34, pw * 0.05, ph * 0.30);
+  // Flared head
+  ctx.fillStyle = shadeColor('#6a4820', shade);
+  ctx.fillRect(cx - pw * 0.045, by - ph * 0.34, pw * 0.09, ph * 0.06);
+}
 
+function drawRevolver(ctx, cx, by, pw, ph, shade) {
+  const metalColor  = shadeColor('#484848', shade);
+  const woodColor   = shadeColor('#5a3010', shade);
+  // Barrel (horizontal)
+  ctx.fillStyle = metalColor;
+  ctx.fillRect(cx - pw * 0.09, by - ph * 0.24, pw * 0.18, ph * 0.05);
+  // Cylinder
   ctx.beginPath();
-  ctx.ellipse(cx, ey, pw * 0.12, ph * 0.15, 0, 0, Math.PI * 2);
-  ctx.fillStyle = outerColor;
+  ctx.ellipse(cx - pw * 0.01, by - ph * 0.17, pw * 0.06, ph * 0.07, 0, 0, Math.PI * 2);
+  ctx.fillStyle = shadeColor('#383838', shade);
   ctx.fill();
+  // Grip
+  fillPoly(ctx, [
+    [cx + pw * 0.04, by - ph * 0.10],
+    [cx + pw * 0.08, by - ph * 0.10],
+    [cx + pw * 0.10, by - ph * 0.04],
+    [cx + pw * 0.06, by - ph * 0.04],
+  ], woodColor);
+}
 
-  ctx.beginPath();
-  ctx.ellipse(cx, ey, pw * 0.078, ph * 0.0975, 0, 0, Math.PI * 2);
-  ctx.fillStyle = innerColor;
-  ctx.fill();
+function drawMachete(ctx, cx, by, pw, ph, shade) {
+  // Broad blade — wider at tip
+  fillPoly(ctx, [
+    [cx - pw * 0.02, by - ph * 0.06],
+    [cx + pw * 0.02, by - ph * 0.06],
+    [cx + pw * 0.06, by - ph * 0.32],
+    [cx - pw * 0.01, by - ph * 0.32],
+  ], shadeColor('#a0a080', shade));
+  // Handle
+  ctx.fillStyle = shadeColor('#5a3010', shade);
+  ctx.fillRect(cx - pw * 0.015, by - ph * 0.06, pw * 0.03, ph * 0.06);
+}
 
+function drawAlienRod(ctx, cx, by, pw, ph, shade) {
+  // Rod body
+  ctx.fillStyle = shadeColor('#2a2a3a', shade);
+  ctx.fillRect(cx - pw * 0.02, by - ph * 0.33, pw * 0.04, ph * 0.29);
+  // Ring details
+  ctx.fillStyle = shadeColor('#4a4a6a', shade);
+  ctx.fillRect(cx - pw * 0.025, by - ph * 0.18, pw * 0.05, ph * 0.01);
+  ctx.fillRect(cx - pw * 0.025, by - ph * 0.24, pw * 0.05, ph * 0.01);
+  // Glowing tip
   ctx.beginPath();
-  ctx.ellipse(cx, ey, pw * 0.018, ph * 0.0225, 0, 0, Math.PI * 2);
-  ctx.fillStyle = bossColor;
+  ctx.ellipse(cx, by - ph * 0.35, pw * 0.05, ph * 0.04, 0, 0, Math.PI * 2);
+  ctx.fillStyle = shadeColor('#a0e0ff', shade);
   ctx.fill();
+}
+
+function drawBandages(ctx, cx, by, pw, ph, shade) {
+  // Rolled bandage
+  ctx.beginPath();
+  ctx.ellipse(cx, by - ph * 0.08, pw * 0.07, ph * 0.06, 0, 0, Math.PI * 2);
+  ctx.fillStyle = shadeColor('#e8dcc8', shade);
+  ctx.fill();
+  ctx.beginPath();
+  ctx.ellipse(cx, by - ph * 0.08, pw * 0.035, ph * 0.03, 0, 0, Math.PI * 2);
+  ctx.fillStyle = shadeColor('#d0c0a0', shade);
+  ctx.fill();
+  // Unrolled tail
+  ctx.fillStyle = shadeColor('#e8dcc8', shade);
+  ctx.fillRect(cx + pw * 0.06, by - ph * 0.09, pw * 0.06, ph * 0.015);
+}
+
+function drawLaudanum(ctx, cx, by, pw, ph, shade) {
+  // Bottle body
+  ctx.fillStyle = shadeColor('#3a1a2a', shade);
+  ctx.fillRect(cx - pw * 0.03, by - ph * 0.18, pw * 0.06, ph * 0.14);
+  // Neck
+  ctx.fillRect(cx - pw * 0.015, by - ph * 0.22, pw * 0.03, ph * 0.04);
+  // Cork
+  ctx.fillStyle = shadeColor('#8b6030', shade);
+  ctx.fillRect(cx - pw * 0.02, by - ph * 0.25, pw * 0.04, ph * 0.025);
+  // Label highlight
+  ctx.fillStyle = shadeColor('#6a3a5a', shade);
+  ctx.fillRect(cx - pw * 0.022, by - ph * 0.15, pw * 0.044, ph * 0.06);
+}
+
+function drawLeatherVest(ctx, cx, by, pw, ph, shade) {
+  const color = shadeColor('#6a3a20', shade);
+  // Body trapezoid — wider at shoulders
+  fillPoly(ctx, [
+    [cx - pw * 0.12, by - ph * 0.36],
+    [cx + pw * 0.12, by - ph * 0.36],
+    [cx + pw * 0.09, by - ph * 0.06],
+    [cx - pw * 0.09, by - ph * 0.06],
+  ], color);
+  // V-neck cutout
+  fillPoly(ctx, [
+    [cx,             by - ph * 0.36],
+    [cx - pw * 0.04, by - ph * 0.26],
+    [cx + pw * 0.04, by - ph * 0.26],
+  ], shadeColor('#c2a256', shade));
+}
+
+function drawSurveyCoat(ctx, cx, by, pw, ph, shade) {
+  const color  = shadeColor('#4a4a38', shade);
+  const lapel  = shadeColor('#5a5a48', shade);
+  // Coat body
+  fillPoly(ctx, [
+    [cx - pw * 0.13, by - ph * 0.44],
+    [cx + pw * 0.13, by - ph * 0.44],
+    [cx + pw * 0.10, by - ph * 0.04],
+    [cx - pw * 0.10, by - ph * 0.04],
+  ], color);
+  // Left lapel
+  fillPoly(ctx, [
+    [cx,             by - ph * 0.44],
+    [cx - pw * 0.06, by - ph * 0.30],
+    [cx - pw * 0.02, by - ph * 0.28],
+  ], lapel);
+  // Right lapel
+  fillPoly(ctx, [
+    [cx,             by - ph * 0.44],
+    [cx + pw * 0.06, by - ph * 0.30],
+    [cx + pw * 0.02, by - ph * 0.28],
+  ], lapel);
+}
+
+function drawAlienPlate(ctx, cx, by, pw, ph, shade) {
+  const color     = shadeColor('#1a1a2a', shade);
+  const highlight = shadeColor('#4a4a6a', shade);
+  // Irregular angular fragment
+  fillPoly(ctx, [
+    [cx - pw * 0.04, by - ph * 0.40],
+    [cx + pw * 0.10, by - ph * 0.36],
+    [cx + pw * 0.13, by - ph * 0.18],
+    [cx + pw * 0.06, by - ph * 0.06],
+    [cx - pw * 0.10, by - ph * 0.10],
+    [cx - pw * 0.12, by - ph * 0.28],
+  ], color);
+  // Metallic highlight lines
+  ctx.fillStyle = highlight;
+  ctx.fillRect(cx - pw * 0.02, by - ph * 0.38, pw * 0.10, ph * 0.01);
+  ctx.fillRect(cx + pw * 0.04, by - ph * 0.28, pw * 0.07, ph * 0.01);
 }

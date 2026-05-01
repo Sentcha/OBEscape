@@ -117,7 +117,7 @@ function generateMaze(dungeonLevel) {
     [itemCandidates[i], itemCandidates[j]] = [itemCandidates[j], itemCandidates[i]];
   }
 
-  for (let i = 0; i < Math.min(3, itemCandidates.length); i++)
+  for (let i = 0; i < Math.min(2, itemCandidates.length); i++)
     map[itemCandidates[i].y][itemCandidates[i].x] = TILE.ITEM;
 
   return map;

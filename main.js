@@ -95,19 +95,14 @@ window.addEventListener('load', () => {
   // ------------------------------------------------------------------
   function pickupItem(item) {
     switch (item.itemType) {
-      case 'currency':
-        player.gold += item.value;
-        break;
       case 'consumable':
         player.hp = Math.min(player.hp + item.heal, player.maxHp);
         break;
       case 'weapon':
-        if (!player.equippedWeapon) player.equippedWeapon = item;
-        else player.inventory.push(item);
+        player.equippedWeapon = item; // always swap — old weapon is dropped
         break;
       case 'armor':
-        if (!player.equippedArmor) player.equippedArmor = item;
-        else player.inventory.push(item);
+        player.equippedArmor = { ...item }; // copy so durability is per-instance
         break;
     }
   }
@@ -124,12 +119,11 @@ window.addEventListener('load', () => {
     );
 
     // Inventory line
-    const wpn = player.equippedWeapon ? player.equippedWeapon.name : '--';
-    const arm = player.equippedArmor  ? player.equippedArmor.name  : '--';
-    ctx.fillText(
-      `HP: ${player.hp}/${player.maxHp}   Gold: ${player.gold}   Weapon: ${wpn}   Armor: ${arm}`,
-      10, 42
-    );
+    const wpn = player.equippedWeapon
+      ? `${player.equippedWeapon.name} +${player.equippedWeapon.attack}` : '--';
+    const arm = player.equippedArmor
+      ? `${player.equippedArmor.name} ${player.equippedArmor.durability}/${player.equippedArmor.maxDurability}` : '--';
+    ctx.fillText(`HP: ${player.hp}/${player.maxHp}   [${wpn}]   [${arm}]`, 10, 42);
 
     // Build info — bottom-right corner.
     ctx.font = 'bold 15px monospace';

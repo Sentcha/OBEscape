@@ -22,7 +22,7 @@ const player = {
   dungeonLevel:    1,
   inventory:       [],
   gold:            0,
-  equippedWeapon:  null,
+  equippedWeapon:  { type: 'bowieKnife', name: 'Bowie Knife', attack: 4, itemType: 'weapon' },
   equippedArmor:   null,
 };
 
