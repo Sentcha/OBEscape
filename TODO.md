@@ -1,6 +1,7 @@
 # OBEscape — TODO
 
 ## Known Issues
+- [ ] Fix render bug when staring at wall that has a corridor parallel to direction of view on left or right side
 - [ ] Fix how stairs are drawn
 - [ ] Support side visibility for monsters
 - [ ] Redesign enemy sprites
