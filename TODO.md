@@ -6,7 +6,7 @@
 - [ ] Redesign enemy sprites
 - [ ] Update sprites for loot
 - [ ] Update compass sprite
-- [ ] Implement cache busting
+- [x] Implement cache busting
 - [ ] Scrollable event log
 
 ## Milestones
