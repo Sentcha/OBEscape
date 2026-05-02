@@ -11,6 +11,8 @@ window.addEventListener('load', () => {
   let items    = loadItems(map, player.dungeonLevel);
   let gameWon  = false;
 
+  const eventLog = [];  // { msg, color } — newest last, capped at 20
+
   // visited[row][col] — true once the player has been close enough to see that cell.
   // Reset whenever a new map is loaded; revealed in a 3×3 area around each step.
   function makeVisited() {
@@ -35,9 +37,11 @@ window.addEventListener('load', () => {
   function descend() {
     if (player.dungeonLevel >= 5) {
       gameWon = true;
+      logEvent('Escaped the labyrinth!', '#4fc3f7');
       return;
     }
     player.dungeonLevel++;
+    logEvent(`Descended to Level ${ROMAN[player.dungeonLevel - 1]}`, '#4fc3f7');
     player.x      = 1;
     player.y      = 1;
     player.facing = 2; // South — same as starting orientation
@@ -134,19 +138,42 @@ window.addEventListener('load', () => {
     ctx.textBaseline = 'alphabetic';
   }
 
+  function drawEventLog() {
+    const x        = 185;
+    const startY   = VIEW_BOT + 16;
+    const lineH    = 17;
+    const maxLines = 5;
+
+    const visible = eventLog.slice(-maxLines);
+    ctx.font = 'bold 11px Georgia, serif';
+    ctx.textAlign = 'left';
+    for (let i = 0; i < visible.length; i++) {
+      ctx.fillStyle = visible[i].color;
+      ctx.fillText(visible[i].msg, x, startY + i * lineH);
+    }
+  }
+
   // ------------------------------------------------------------------
   // Item pickup — called after every successful move.
   // ------------------------------------------------------------------
+  function logEvent(msg, color = '#f5d485') {
+    eventLog.push({ msg, color });
+    if (eventLog.length > 20) eventLog.shift();
+  }
+
   function pickupItem(item) {
     switch (item.itemType) {
       case 'consumable':
         player.hp = Math.min(player.hp + item.heal, player.maxHp);
+        logEvent(`Drank ${item.name}  +${item.heal} HP`);
         break;
       case 'weapon':
         player.equippedWeapon = item; // always swap — old weapon is dropped
+        logEvent(`Equipped ${item.name}`);
         break;
       case 'armor':
         player.equippedArmor = { ...item }; // copy so durability is per-instance
+        logEvent(`Equipped ${item.name}`);
         break;
     }
   }
@@ -315,6 +342,7 @@ window.addEventListener('load', () => {
     }
 
     drawMinimap();
+    drawEventLog();
     drawHUD();
     drawDpad(ctx);
     drawDebugPanel(ctx, map);
