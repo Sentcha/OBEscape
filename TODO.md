@@ -9,6 +9,7 @@
 - [ ] Update compass sprite
 - [x] Implement cache busting
 - [ ] Scrollable event log
+- [ ] Fix hieroglyphics rendering
 
 ## Advanced Features
 - [ ] Noise mechanics based on speed of user input
