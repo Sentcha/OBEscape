@@ -1,4 +1,4 @@
-const debug = { enabled: false, noclip: false, godMode: false, showDpad: true };
+const debug = { enabled: false, noclip: false, godMode: false, showDpad: false };
 
 // Layout constants — shared by drawDebugPanel and getDebugHit so geometry stays in sync.
 const DBG_BTN   = { x: 744, y: 8, w: 48, h: 24 };
