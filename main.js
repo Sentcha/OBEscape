@@ -1,20 +1,20 @@
 // Entry point and game coordinator.
-// Milestone 9: HUD and minimap.
+// Milestone 10: Main menu, game over screen, win screen.
 
 window.addEventListener('load', () => {
   const canvas = document.getElementById('gameCanvas');
   const ctx = canvas.getContext('2d');
 
-  let map      = generateMaze(player.dungeonLevel);
-  let maxDepth = map[0].length - 2;
-  let enemies  = loadEnemies(map, player.dungeonLevel);
-  let items    = loadItems(map, player.dungeonLevel);
-  let gameWon  = false;
+  // Game state — 'menu' | 'playing' | 'dead' | 'won'
+  let gameState  = 'menu';
+  let difficulty = 'standard';
+
+  // Run-level state — undefined until startRun() is called.
+  let map, maxDepth, enemies, items, visited;
 
   const eventLog = [];  // { msg, color } — newest last, capped at 20
 
   // visited[row][col] — true once the player has been close enough to see that cell.
-  // Reset whenever a new map is loaded; revealed in a 3×3 area around each step.
   function makeVisited() {
     return Array.from({ length: map.length }, () => new Array(map[0].length).fill(false));
   }
@@ -26,17 +26,45 @@ window.addEventListener('load', () => {
           visited[ny][nx] = true;
       }
   }
-  let visited = makeVisited();
-  markVisited(1, 1); // reveal the starting cell on load
+
+  // ------------------------------------------------------------------
+  // Start / restart a run at the chosen difficulty.
+  // ------------------------------------------------------------------
+  function startRun(diff) {
+    difficulty = diff;
+    Object.assign(player, {
+      x: 1, y: 1, facing: 2,
+      hp: 20, maxHp: 20,
+      dungeonLevel: 1,
+      inventory: [],
+      equippedWeapon: { name: 'Bowie Knife', attack: 5, itemType: 'weapon' },
+      equippedArmor: null,
+    });
+    map      = generateMaze(1);
+    maxDepth = map[0].length - 2;
+    enemies  = difficulty === 'explorer' ? [] : loadEnemies(map, 1);
+    items    = difficulty === 'explorer' ? [] : loadItems(map, 1);
+    visited  = makeVisited();
+    markVisited(1, 1);
+    eventLog.length = 0;
+    gameState = 'playing';
+    draw();
+  }
+
+  // Hook for M7 combat — call after any action that reduces player HP.
+  function checkDeath() {
+    if (player.hp <= 0) {
+      gameState = 'dead';
+      draw();
+    }
+  }
 
   // ------------------------------------------------------------------
   // Level transition — called when the player steps onto TILE.STAIRS.
-  // Increments dungeonLevel, generates a fresh map, and resets the
-  // player back to the top-left starting position.
   // ------------------------------------------------------------------
   function descend() {
     if (player.dungeonLevel >= 5) {
-      gameWon = true;
+      gameState = 'won';
       logEvent('Escaped the labyrinth!', '#4fc3f7');
       return;
     }
@@ -44,18 +72,17 @@ window.addEventListener('load', () => {
     logEvent(`Descended to Level ${ROMAN[player.dungeonLevel - 1]}`, '#4fc3f7');
     player.x      = 1;
     player.y      = 1;
-    player.facing = 2; // South — same as starting orientation
+    player.facing = 2;
     map      = generateMaze(player.dungeonLevel);
     maxDepth = map[0].length - 2;
-    enemies  = loadEnemies(map, player.dungeonLevel);
-    items    = loadItems(map, player.dungeonLevel);
+    enemies  = difficulty === 'explorer' ? [] : loadEnemies(map, player.dungeonLevel);
+    items    = difficulty === 'explorer' ? [] : loadItems(map, player.dungeonLevel);
     visited  = makeVisited();
     markVisited(1, 1);
   }
 
   // ------------------------------------------------------------------
   // Minimap — small top-down grid drawn in the bottom-left corner.
-  // Cell size shrinks for larger maps so the minimap stays within 120px.
   // ------------------------------------------------------------------
   function drawMinimap() {
     const cols    = map[0].length;
@@ -64,11 +91,9 @@ window.addEventListener('load', () => {
     const originX = 10;
     const originY = VIEW_BOT + 8;
 
-    // Dark backing panel
     ctx.fillStyle = 'rgba(0, 0, 0, 0.65)';
     ctx.fillRect(originX - 2, originY - 2, cols * CELL + 4, rows * CELL + 4);
 
-    // Cells — unvisited areas stay black (fog of war).
     for (let row = 0; row < rows; row++) {
       for (let col = 0; col < cols; col++) {
         if (!visited[row][col]) {
@@ -83,19 +108,16 @@ window.addEventListener('load', () => {
       }
     }
 
-    // Item dots (amber) — visible once the cell has been visited
     ctx.fillStyle = '#ffe066';
     for (const it of items)
       if (visited[it.y][it.x])
         ctx.fillRect(originX + it.x * CELL, originY + it.y * CELL, CELL - 1, CELL - 1);
 
-    // Enemy dots (red)
     ctx.fillStyle = '#e03030';
     for (const en of enemies)
       if (visited[en.y][en.x])
         ctx.fillRect(originX + en.x * CELL, originY + en.y * CELL, CELL - 1, CELL - 1);
 
-    // Player dot (gold)
     ctx.fillStyle = '#f5d485';
     ctx.fillRect(originX + player.x * CELL, originY + player.y * CELL, CELL - 1, CELL - 1);
   }
@@ -153,14 +175,14 @@ window.addEventListener('load', () => {
     }
   }
 
-  // ------------------------------------------------------------------
-  // Item pickup — called after every successful move.
-  // ------------------------------------------------------------------
   function logEvent(msg, color = '#f5d485') {
     eventLog.push({ msg, color });
     if (eventLog.length > 20) eventLog.shift();
   }
 
+  // ------------------------------------------------------------------
+  // Item pickup — called after every successful move.
+  // ------------------------------------------------------------------
   function pickupItem(item) {
     switch (item.itemType) {
       case 'consumable':
@@ -168,11 +190,11 @@ window.addEventListener('load', () => {
         logEvent(`Drank ${item.name}  +${item.heal} HP`);
         break;
       case 'weapon':
-        player.equippedWeapon = item; // always swap — old weapon is dropped
+        player.equippedWeapon = item;
         logEvent(`Equipped ${item.name}`);
         break;
       case 'armor':
-        player.equippedArmor = { ...item }; // copy so durability is per-instance
+        player.equippedArmor = { ...item };
         logEvent(`Equipped ${item.name}`);
         break;
     }
@@ -193,51 +215,43 @@ window.addEventListener('load', () => {
   }
 
   // ------------------------------------------------------------------
-  // HUD — full M9 layout.
+  // HUD — top and bottom strips drawn over the corridor view.
   // ------------------------------------------------------------------
   function drawHUD() {
     const gold  = '#f5d485';
     const serif = 'bold 12px Georgia, serif';
 
-    // --- Top-left panel: HP bar + equipped gear ---
     ctx.fillStyle = 'rgba(0,0,0,0.55)';
     ctx.fillRect(8, 6, 220, 88);
 
-    // HP bar
     const barX = 36, barY = 16, barW = 160, barH = 14;
     ctx.font = serif;
     ctx.fillStyle = gold;
     ctx.fillText('HP', 12, 25);
 
-    // bar fill (red)
     const fill = Math.round(barW * Math.max(0, player.hp / player.maxHp));
     ctx.fillStyle = '#c03030';
     ctx.fillRect(barX, barY, fill, barH);
-    // bar border (gold)
     ctx.strokeStyle = gold;
     ctx.lineWidth = 1;
     ctx.strokeRect(barX, barY, barW, barH);
 
-    // HP numbers right of bar
     ctx.font = serif;
     ctx.fillStyle = gold;
     ctx.textAlign = 'right';
     ctx.fillText(`${player.hp} / ${player.maxHp}`, 228, 25);
     ctx.textAlign = 'left';
 
-    // Weapon row
     const wpn = player.equippedWeapon
       ? `${player.equippedWeapon.name.toUpperCase()}  +${player.equippedWeapon.attack}`
       : '--';
     ctx.fillText(`[${wpn}]`, 12, 52);
 
-    // Armour row
     const arm = player.equippedArmor
       ? `${player.equippedArmor.name.toUpperCase()}  ${player.equippedArmor.durability}/${player.equippedArmor.maxDurability}`
       : '--';
     ctx.fillText(`[${arm}]`, 12, 72);
 
-    // --- Top-right: level indicator ---
     const roman = ROMAN[player.dungeonLevel - 1] || String(player.dungeonLevel);
     ctx.textAlign = 'right';
     ctx.font = 'bold 11px Georgia, serif';
@@ -247,7 +261,6 @@ window.addEventListener('load', () => {
     ctx.fillText(roman, 790, 72);
     ctx.textAlign = 'left';
 
-    // --- Bottom-centre: action prompt ---
     const prompt = getActionPrompt();
     if (prompt) {
       ctx.font = 'bold 13px Georgia, serif';
@@ -260,7 +273,6 @@ window.addEventListener('load', () => {
       ctx.fillText(prompt, px, py);
     }
 
-    // --- Bottom-right: build info ---
     ctx.font = 'bold 11px monospace';
     ctx.fillStyle = 'rgba(245,212,133,0.45)';
     const buildStr = `${VERSION.branch}@${VERSION.commit}  ${VERSION.date}`;
@@ -271,28 +283,111 @@ window.addEventListener('load', () => {
   }
 
   // ------------------------------------------------------------------
-  // Win screen — placeholder until the full screen arrives in M10.
-  // Draws a dark overlay over the final dungeon view.
+  // Button helpers — shared by menu, win, and game-over screens.
   // ------------------------------------------------------------------
-  function drawWinScreen() {
-    ctx.fillStyle = 'rgba(0, 0, 0, 0.75)';
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
+  function drawMenuButton(cx, cy, label, sublabel) {
+    const W = 320, H = 52;
+    ctx.fillStyle = 'rgba(0,0,0,0.6)';
+    ctx.beginPath();
+    ctx.roundRect(cx - W / 2, cy - H / 2, W, H, 8);
+    ctx.fill();
+    ctx.strokeStyle = '#6b4a1a';
+    ctx.lineWidth = 1;
+    ctx.stroke();
+    ctx.fillStyle = '#f5d485';
+    ctx.font = 'bold 16px Georgia, serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(label, cx, sublabel ? cy - 8 : cy);
+    if (sublabel) {
+      ctx.fillStyle = 'rgba(245,212,133,0.5)';
+      ctx.font = '11px Georgia, serif';
+      ctx.fillText(sublabel, cx, cy + 10);
+    }
+    ctx.textBaseline = 'alphabetic';
+  }
+
+  function drawSmallButton(cx, cy, label) {
+    const W = 220, H = 52;
+    ctx.fillStyle = 'rgba(0,0,0,0.6)';
+    ctx.beginPath();
+    ctx.roundRect(cx - W / 2, cy - H / 2, W, H, 8);
+    ctx.fill();
+    ctx.strokeStyle = '#6b4a1a';
+    ctx.lineWidth = 1;
+    ctx.stroke();
+    ctx.fillStyle = '#f5d485';
+    ctx.font = 'bold 16px Georgia, serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(label, cx, cy);
+    ctx.textBaseline = 'alphabetic';
+  }
+
+  function hitMenuButton(x, y, cx, cy)  { return Math.abs(x - cx) <= 160 && Math.abs(y - cy) <= 26; }
+  function hitSmallButton(x, y, cx, cy) { return Math.abs(x - cx) <= 110 && Math.abs(y - cy) <= 26; }
+
+  // ------------------------------------------------------------------
+  // Screens.
+  // ------------------------------------------------------------------
+  function drawMainMenu() {
+    ctx.fillStyle = '#080808';
+    ctx.fillRect(0, 0, CANVAS_W, CANVAS_H);
 
     ctx.textAlign = 'center';
-
-    ctx.font = 'bold 64px monospace';
     ctx.fillStyle = '#f5d485';
-    ctx.fillText('YOU ESCAPED', canvas.width / 2, canvas.height / 2 - 20);
+    ctx.font = 'bold 64px Georgia, serif';
+    ctx.fillText('OBESCAPE', CANVAS_W / 2, 220);
 
-    ctx.font = 'bold 20px monospace';
-    ctx.fillStyle = '#c2a256';
-    ctx.fillText('The labyrinth is behind you. The desert waits above.', canvas.width / 2, canvas.height / 2 + 30);
+    ctx.fillStyle = 'rgba(245,212,133,0.55)';
+    ctx.font = '15px Georgia, serif';
+    ctx.fillText('Five levels. No second chances.', CANVAS_W / 2, 290);
 
-    ctx.textAlign = 'left'; // reset to default
+    drawMenuButton(400, 380, 'EXPLORER', 'No enemies · pure maze walk');
+    drawMenuButton(400, 456, 'STANDARD', 'Permadeath · balanced');
+    drawMenuButton(400, 532, 'BRUTAL',   'Harder · deadlier · less loot');
+    ctx.textAlign = 'left';
+  }
+
+  function drawGameOverScreen() {
+    ctx.fillStyle = 'rgba(0,0,0,0.82)';
+    ctx.fillRect(0, 0, CANVAS_W, CANVAS_H);
+
+    ctx.textAlign = 'center';
+    ctx.fillStyle = '#e03030';
+    ctx.font = 'bold 64px Georgia, serif';
+    ctx.fillText('YOU DIED', CANVAS_W / 2, 330);
+
+    const lvl = ROMAN[player.dungeonLevel - 1] || player.dungeonLevel;
+    ctx.fillStyle = '#f5d485';
+    ctx.font = 'bold 18px Georgia, serif';
+    ctx.fillText(`Fell on Level ${lvl}`, CANVAS_W / 2, 400);
+
+    drawSmallButton(230, 560, 'TRY AGAIN');
+    drawSmallButton(570, 560, 'MAIN MENU');
+    ctx.textAlign = 'left';
+  }
+
+  function drawWinScreen() {
+    ctx.fillStyle = 'rgba(0,0,0,0.82)';
+    ctx.fillRect(0, 0, CANVAS_W, CANVAS_H);
+
+    ctx.textAlign = 'center';
+    ctx.fillStyle = '#f5d485';
+    ctx.font = 'bold 64px Georgia, serif';
+    ctx.fillText('YOU ESCAPED', CANVAS_W / 2, 310);
+
+    ctx.fillStyle = 'rgba(245,212,133,0.6)';
+    ctx.font = '16px Georgia, serif';
+    ctx.fillText('The labyrinth is behind you. The desert waits above.', CANVAS_W / 2, 380);
+
+    drawSmallButton(230, 560, 'PLAY AGAIN');
+    drawSmallButton(570, 560, 'MAIN MENU');
+    ctx.textAlign = 'left';
   }
 
   // ------------------------------------------------------------------
-  // Debug command executor — shared by keyboard and touch paths.
+  // Debug command executor.
   // ------------------------------------------------------------------
   function runDebugCmd(cmd) {
     switch (cmd) {
@@ -318,28 +413,28 @@ window.addEventListener('load', () => {
       case 'r':
         map = generateMaze(player.dungeonLevel);
         maxDepth = map[0].length - 2;
-        enemies = loadEnemies(map, player.dungeonLevel);
-        items   = loadItems(map, player.dungeonLevel);
+        enemies = difficulty === 'explorer' ? [] : loadEnemies(map, player.dungeonLevel);
+        items   = difficulty === 'explorer' ? [] : loadItems(map, player.dungeonLevel);
         visited = makeVisited();
         markVisited(player.x, player.y);
         break;
     }
-    markVisited(player.x, player.y); // reveal wherever a debug command landed the player
+    if (gameState === 'playing') markVisited(player.x, player.y);
     draw();
   }
 
   // ------------------------------------------------------------------
-  // Main draw — called once on load and again after every player action.
+  // Main draw — dispatches on gameState.
   // ------------------------------------------------------------------
   function draw() {
+    if (gameState === 'menu') { drawMainMenu(); return; }
+
     ctx.fillStyle = '#080808';
     ctx.fillRect(0, 0, CANVAS_W, CANVAS_H);
     renderView(ctx, buildScene(map, maxDepth, enemies, items));
 
-    if (gameWon) {
-      drawWinScreen();
-      return;
-    }
+    if (gameState === 'won')  { drawWinScreen();      return; }
+    if (gameState === 'dead') { drawGameOverScreen();  return; }
 
     drawMinimap();
     drawEventLog();
@@ -349,21 +444,28 @@ window.addEventListener('load', () => {
   }
 
   // ------------------------------------------------------------------
-  // Input — keyboard (desktop) and D-pad buttons (touch / mouse click).
+  // Input — keyboard (desktop) and D-pad / screen buttons (touch/mouse).
   // ------------------------------------------------------------------
-
-  // Keyboard: prevent arrow keys from scrolling the browser page.
   document.addEventListener('keydown', (e) => {
     if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key)) {
       e.preventDefault();
     }
-    // Debug panel toggle always intercepts backtick; command keys intercept when panel is open.
     if (e.key === '`') { runDebugCmd('toggle'); return; }
     if (debug.enabled) {
       const k = e.key.toLowerCase();
       if (k.length === 1 && 'ngtxlr'.includes(k)) { runDebugCmd(k); return; }
     }
-    if (gameWon) return;
+    if (gameState === 'menu') {
+      if (e.key === '1') startRun('explorer');
+      if (e.key === '2') startRun('standard');
+      if (e.key === '3') startRun('brutal');
+      return;
+    }
+    if (gameState === 'won' || gameState === 'dead') {
+      if (e.key === 'Enter' || e.key.toLowerCase() === 'r') startRun(difficulty);
+      if (e.key === 'Escape') { gameState = 'menu'; draw(); }
+      return;
+    }
     if (handleKey(e, map)) {
       markVisited(player.x, player.y);
       const itemIdx = items.findIndex(it => it.x === player.x && it.y === player.y);
@@ -373,15 +475,23 @@ window.addEventListener('load', () => {
     }
   });
 
-  // Touch and mouse: convert the pointer position to canvas coordinates,
-  // check if it hit a D-pad button, then fire the same handleKey logic.
   function handlePointer(e) {
     e.preventDefault();
     const { x, y } = getCanvasXY(e, canvas);
-    // Debug panel is checked before game-won guard so the DBG button always works.
     const dbgCmd = getDebugHit(x, y);
     if (dbgCmd) { runDebugCmd(dbgCmd); return; }
-    if (gameWon) return;
+
+    if (gameState === 'menu') {
+      if (hitMenuButton(x, y, 400, 380)) startRun('explorer');
+      else if (hitMenuButton(x, y, 400, 456)) startRun('standard');
+      else if (hitMenuButton(x, y, 400, 532)) startRun('brutal');
+      return;
+    }
+    if (gameState === 'won' || gameState === 'dead') {
+      if (hitSmallButton(x, y, 230, 560)) startRun(difficulty);
+      else if (hitSmallButton(x, y, 570, 560)) { gameState = 'menu'; draw(); }
+      return;
+    }
     const key = getDpadKey(x, y);
     if (key && handleKey({ key }, map)) {
       markVisited(player.x, player.y);
