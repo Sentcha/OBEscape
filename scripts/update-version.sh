@@ -15,3 +15,11 @@ const VERSION = {
 EOF
 
 echo "version.js updated: $BRANCH@$COMMIT ($DATE)"
+
+# Patch index.html script tags with the new commit hash.
+# Step 1 — strip any existing ?v=... so the substitution is idempotent.
+sed -i 's/\.js?v=[^"]*/\.js/g' "$(dirname "$0")/../index.html"
+# Step 2 — append ?v=COMMIT to every .js src attribute.
+sed -i "s/\.js\">/\.js?v=${COMMIT}\">/g" "$(dirname "$0")/../index.html"
+
+echo "index.html cache-busted: ?v=${COMMIT}"
