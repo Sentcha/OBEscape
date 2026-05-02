@@ -105,17 +105,27 @@ function renderView(ctx, scene) {
   // 2. Painter's algorithm — draw deepest depth first, depth 1 last.
   //    This ensures nearer walls paint over farther ones.
   const maxDepth = scene.length;
+  const fwd = DIR[player.facing];
+  const lft = { dx: fwd.dy,  dy: -fwd.dx };
+  const rgt = { dx: -fwd.dy, dy:  fwd.dx };
+
   for (let d = maxDepth; d >= 1; d--) {
     const s     = scene[d - 1];
     const far   = makePortal(d);
     // For depth 1, the "near" boundary is the view edge (not the full canvas).
     const near  = d > 1 ? makePortal(d - 1) : { l: 0, r: CANVAS_W, t: VIEW_TOP, b: VIEW_BOT };
     const shade = shadeAtDepth(d);
+    const fx    = player.x + d * fwd.dx;
+    const fy    = player.y + d * fwd.dy;
+    const nx    = player.x + (d - 1) * fwd.dx;
+    const ny    = player.y + (d - 1) * fwd.dy;
 
     // Back wall: a flat rectangle filling the portal at this depth.
     if (s.back) {
       ctx.fillStyle = shadeColor(COLORS.wallBack, shade);
       ctx.fillRect(far.l, far.t, far.r - far.l, far.b - far.t);
+      const sz = Math.min(far.r - far.l, far.b - far.t) * 0.30;
+      maybeDrawGlyph(ctx, (far.l + far.r) / 2, (far.t + far.b) / 2, sz, shade, fx, fy, 0);
     }
 
     // Stairs: alternating tread/riser bands drawn on the floor ahead of the tile.
@@ -133,6 +143,8 @@ function renderView(ctx, scene) {
         // Part of a perpendicular wall — flat rectangle at back-wall height, same color.
         ctx.fillStyle = shadeColor(COLORS.wallBack, shade);
         ctx.fillRect(near.l, far.t, far.l - near.l, far.b - far.t);
+        const sz = Math.min(far.l - near.l, far.b - far.t) * 0.30;
+        maybeDrawGlyph(ctx, (near.l + far.l) / 2, (far.t + far.b) / 2, sz, shade, fx, fy, 1);
       } else {
         fillPoly(ctx, [
           [near.l, near.t],
@@ -140,6 +152,10 @@ function renderView(ctx, scene) {
           [far.l,  far.b],
           [near.l, near.b],
         ], shadeColor(COLORS.wallSide, shade));
+        const availW = far.l - near.l;
+        const availH = ((near.b - near.t) + (far.b - far.t)) / 2;
+        const sz = Math.min(availW, availH) * 0.30;
+        maybeDrawGlyph(ctx, (near.l + far.l) / 2, CY, sz, shade, nx + lft.dx, ny + lft.dy, 1);
       }
     } else {
       // Side opening — draw the near face of the branch corridor entry wall.
@@ -149,6 +165,8 @@ function renderView(ctx, scene) {
       const wx = Math.max(0, 2 * far.l - CX);
       ctx.fillStyle = shadeColor(COLORS.wallSide, shade);
       ctx.fillRect(wx, far.t, far.l - wx, far.b - far.t);
+      const sz = Math.min(far.l - wx, far.b - far.t) * 0.30;
+      maybeDrawGlyph(ctx, (wx + far.l) / 2, CY, sz, shade, fx + lft.dx, fy + lft.dy, 3);
     }
 
     // Right wall: either a flat extension of the back wall, or a perspective trapezoid.
@@ -156,6 +174,8 @@ function renderView(ctx, scene) {
       if (s.rightFlat) {
         ctx.fillStyle = shadeColor(COLORS.wallBack, shade);
         ctx.fillRect(far.r, far.t, near.r - far.r, far.b - far.t);
+        const sz = Math.min(near.r - far.r, far.b - far.t) * 0.30;
+        maybeDrawGlyph(ctx, (far.r + near.r) / 2, (far.t + far.b) / 2, sz, shade, fx, fy, 2);
       } else {
         fillPoly(ctx, [
           [far.r,  far.t],
@@ -163,11 +183,17 @@ function renderView(ctx, scene) {
           [near.r, near.b],
           [far.r,  far.b],
         ], shadeColor(COLORS.wallSide, shade));
+        const availW = near.r - far.r;
+        const availH = ((near.b - near.t) + (far.b - far.t)) / 2;
+        const sz = Math.min(availW, availH) * 0.30;
+        maybeDrawGlyph(ctx, (far.r + near.r) / 2, CY, sz, shade, nx + rgt.dx, ny + rgt.dy, 2);
       }
     } else {
       const wx = Math.min(CANVAS_W, 2 * far.r - CX);
       ctx.fillStyle = shadeColor(COLORS.wallSide, shade);
       ctx.fillRect(far.r, far.t, wx - far.r, far.b - far.t);
+      const sz = Math.min(wx - far.r, far.b - far.t) * 0.30;
+      maybeDrawGlyph(ctx, (far.r + wx) / 2, CY, sz, shade, fx + rgt.dx, fy + rgt.dy, 4);
     }
   }
 

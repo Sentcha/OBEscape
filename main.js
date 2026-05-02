@@ -40,6 +40,7 @@ window.addEventListener('load', () => {
       equippedWeapon: { name: 'Bowie Knife', attack: 5, itemType: 'weapon' },
       equippedArmor: null,
     });
+    newGlyphSeed();
     map      = generateMaze(1);
     maxDepth = map[0].length - 2;
     enemies  = difficulty === 'explorer' ? [] : loadEnemies(map, 1);
@@ -73,6 +74,7 @@ window.addEventListener('load', () => {
     player.x      = 1;
     player.y      = 1;
     player.facing = 2;
+    newGlyphSeed();
     map      = generateMaze(player.dungeonLevel);
     maxDepth = map[0].length - 2;
     enemies  = difficulty === 'explorer' ? [] : loadEnemies(map, player.dungeonLevel);
