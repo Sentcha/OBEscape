@@ -23,5 +23,5 @@
 - [ ] M7: Turn-based combat
 - [x] M8: Items and inventory
 - [x] M9: HUD and minimap
-- [ ] M10: Main menu, game over screen, win screen
+- [x] M10: Main menu, game over screen, win screen
 - [ ] M11: Polish — sound (optional), hieroglyph decorations
