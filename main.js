@@ -493,7 +493,7 @@ window.addEventListener('load', () => {
       else if (hitSmallButton(x, y, 570, 560)) { gameState = 'menu'; draw(); }
       return;
     }
-    const key = getDpadKey(x, y);
+    const key = getDpadKey(x, y) ?? getViewTapKey(x, y);
     if (key && handleKey({ key }, map)) {
       markVisited(player.x, player.y);
       const itemIdx = items.findIndex(it => it.x === player.x && it.y === player.y);

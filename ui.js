@@ -56,6 +56,18 @@ function getDpadKey(cx, cy) {
   return null;
 }
 
+// Divide the first-person view into four triangular tap zones using 45° diagonals
+// from the view centre. Returns an arrow-key string or null.
+function getViewTapKey(x, y) {
+  if (y < VIEW_TOP || y > VIEW_BOT) return null;
+  const dx = x - CANVAS_W / 2;
+  const dy = y - (VIEW_TOP + VIEW_BOT) / 2;
+  if (dx * dx + dy * dy < 30 * 30) return null;  // dead zone at centre
+  return Math.abs(dy) > Math.abs(dx)
+    ? (dy < 0 ? 'ArrowUp'   : 'ArrowDown')
+    : (dx < 0 ? 'ArrowLeft' : 'ArrowRight');
+}
+
 // Convert a touch or mouse event to canvas-space (x, y), correcting for any
 // CSS scaling that makes the canvas appear smaller or larger than 800x600.
 function getCanvasXY(e, canvas) {
