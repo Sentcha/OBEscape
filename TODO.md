@@ -6,6 +6,8 @@
 - [ ] Redesign enemy sprites
 - [ ] Update sprites for loot
 - [ ] Update compass sprite
+- [ ] Implement cache busting
+- [ ] Scrollable event log
 
 ## Milestones
 - [x] M1: Static corridor view renders on canvas
