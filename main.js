@@ -392,8 +392,9 @@ window.addEventListener('load', () => {
   function runDebugCmd(cmd) {
     switch (cmd) {
       case 'toggle': debug.enabled = !debug.enabled; break;
-      case 'n': debug.noclip  = !debug.noclip;  break;
-      case 'g': debug.godMode = !debug.godMode; break;
+      case 'n': debug.noclip   = !debug.noclip;   break;
+      case 'g': debug.godMode  = !debug.godMode;  break;
+      case 'd': debug.showDpad = !debug.showDpad; break;
       case 't': {
         const raw = prompt('Teleport to x,y:', `${player.x},${player.y}`);
         if (raw) {
@@ -439,7 +440,7 @@ window.addEventListener('load', () => {
     drawMinimap();
     drawEventLog();
     drawHUD();
-    drawDpad(ctx);
+    if (debug.showDpad) drawDpad(ctx);
     drawDebugPanel(ctx, map);
   }
 
@@ -453,7 +454,7 @@ window.addEventListener('load', () => {
     if (e.key === '`') { runDebugCmd('toggle'); return; }
     if (debug.enabled) {
       const k = e.key.toLowerCase();
-      if (k.length === 1 && 'ngtxlr'.includes(k)) { runDebugCmd(k); return; }
+      if (k.length === 1 && 'ngtxlrd'.includes(k)) { runDebugCmd(k); return; }
     }
     if (gameState === 'menu') {
       if (e.key === '1') startRun('explorer');
