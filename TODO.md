@@ -12,6 +12,7 @@
 
 ## Advanced Features
 - [ ] Noise mechanics based on speed of user input
+- [ ] Sound effects
 
 ## Milestones
 - [x] M1: Static corridor view renders on canvas
@@ -24,4 +25,4 @@
 - [x] M8: Items and inventory
 - [x] M9: HUD and minimap
 - [x] M10: Main menu, game over screen, win screen
-- [ ] M11: Polish — sound (optional), hieroglyph decorations
+- [ ] M11: Polish — hieroglyph decorations
