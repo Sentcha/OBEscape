@@ -10,6 +10,9 @@
 - [x] Implement cache busting
 - [ ] Scrollable event log
 
+## Advanced Features
+- [ ] Noise mechanics based on speed of user input
+
 ## Milestones
 - [x] M1: Static corridor view renders on canvas
 - [x] M2: Grid map loads and player moves on it
