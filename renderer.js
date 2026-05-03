@@ -164,10 +164,10 @@ function renderView(ctx, scene) {
       const wx_far  = Math.max(0, 2 * far.l  - CX);
       const wx_near = Math.max(0, 2 * near.l - CX);
       fillPoly(ctx, [
-        [wx_near, VIEW_TOP],
+        [wx_near, near.t],
         [wx_far,  far.t],
         [wx_far,  far.b],
-        [wx_near, VIEW_BOT],
+        [wx_near, near.b],
       ], shadeColor(COLORS.wallSide, shade));
       const w = wx_far - wx_near;
       if (w > 4) {
@@ -200,8 +200,8 @@ function renderView(ctx, scene) {
       const wx_near = Math.min(CANVAS_W, 2 * near.r - CX);
       fillPoly(ctx, [
         [wx_far,  far.t],
-        [wx_near, VIEW_TOP],
-        [wx_near, VIEW_BOT],
+        [wx_near, near.t],
+        [wx_near, near.b],
         [wx_far,  far.b],
       ], shadeColor(COLORS.wallSide, shade));
       const w = wx_near - wx_far;
