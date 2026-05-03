@@ -158,19 +158,21 @@ function renderView(ctx, scene) {
         maybeDrawGlyph(ctx, (near.l + far.l) / 2, CY, sz, shade, nx + lft.dx, ny + lft.dy, 1);
       }
     } else {
-      // Side opening — outer wall of the parallel corridor.
-      // effDepth uses corridor length (leftLen) + lateral offset (2 tiles) so that
-      // short corridors show a tall nearby wall and long corridors a short distant wall.
-      const wx        = Math.max(0, 2 * far.l - CX);
-      const effDepth  = Math.sqrt(s.leftLen * s.leftLen + 4);
-      const h         = Math.round(400 / effDepth);
-      const wt        = CY - h / 2;
-      const wb        = CY + h / 2;
-      const effShade  = shadeAtDepth(effDepth);
-      ctx.fillStyle   = shadeColor(COLORS.wallSide, effShade);
-      ctx.fillRect(wx, wt, far.l - wx, wb - wt);
-      const sz = Math.min(far.l - wx, wb - wt) * 0.30;
-      if (sz > 5) maybeDrawGlyph(ctx, (wx + far.l) / 2, CY, sz, effShade, fx + lft.dx, fy + lft.dy, 3);
+      // Side opening — perspective trapezoid for the outer wall of the parallel corridor.
+      // The outer wall sits at x_world = -1.5 (one full cell-width past the opening),
+      // which projects to 3*far.l - 2*CX at depth d (vs. the incorrect 2*far.l - CX).
+      const wx_far  = Math.max(0, 3 * far.l  - 2 * CX);
+      const wx_near = Math.max(0, 3 * near.l - 2 * CX);
+      fillPoly(ctx, [
+        [wx_near, near.t],
+        [wx_far,  far.t],
+        [wx_far,  far.b],
+        [wx_near, near.b],
+      ], shadeColor(COLORS.wallSide, shade));
+      const w = wx_far - wx_near;
+      const h = (far.b - far.t + near.b - near.t) / 2;
+      const sz = Math.min(w, h) * 0.30;
+      if (sz > 5) maybeDrawGlyph(ctx, (wx_near + wx_far) / 2, CY, sz, shade, fx + lft.dx, fy + lft.dy, 3);
     }
 
     // Right wall: either a flat extension of the back wall, or a perspective trapezoid.
@@ -193,16 +195,18 @@ function renderView(ctx, scene) {
         maybeDrawGlyph(ctx, (far.r + near.r) / 2, CY, sz, shade, nx + rgt.dx, ny + rgt.dy, 2);
       }
     } else {
-      const wx        = Math.min(CANVAS_W, 2 * far.r - CX);
-      const effDepth  = Math.sqrt(s.rightLen * s.rightLen + 4);
-      const h         = Math.round(400 / effDepth);
-      const wt        = CY - h / 2;
-      const wb        = CY + h / 2;
-      const effShade  = shadeAtDepth(effDepth);
-      ctx.fillStyle   = shadeColor(COLORS.wallSide, effShade);
-      ctx.fillRect(far.r, wt, wx - far.r, wb - wt);
-      const sz = Math.min(wx - far.r, wb - wt) * 0.30;
-      if (sz > 5) maybeDrawGlyph(ctx, (far.r + wx) / 2, CY, sz, effShade, fx + rgt.dx, fy + rgt.dy, 4);
+      const wx_far  = Math.min(CANVAS_W, 3 * far.r  - 2 * CX);
+      const wx_near = Math.min(CANVAS_W, 3 * near.r - 2 * CX);
+      fillPoly(ctx, [
+        [wx_far,  far.t],
+        [wx_near, near.t],
+        [wx_near, near.b],
+        [wx_far,  far.b],
+      ], shadeColor(COLORS.wallSide, shade));
+      const w = wx_near - wx_far;
+      const h = (far.b - far.t + near.b - near.t) / 2;
+      const sz = Math.min(w, h) * 0.30;
+      if (sz > 5) maybeDrawGlyph(ctx, (wx_far + wx_near) / 2, CY, sz, shade, fx + rgt.dx, fy + rgt.dy, 4);
     }
   }
 
