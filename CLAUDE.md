@@ -10,4 +10,5 @@ OBEscape is a mobile-first browser game. All features must work on mobile browse
 
 ## Git
 
-- Always work on the `main` branch unless explicitly told otherwise.
+- Always work on the `claude/fix-corner-geometry` branch unless explicitly told otherwise.
+- This branch is deployed to GitHub Pages.
