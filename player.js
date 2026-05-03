@@ -89,6 +89,23 @@ function buildScene(map, maxDepth, enemies, items) {
     // True when the near side is open but the far side is walled AND a back wall exists.
     const leftFlat  = !nearLeft  && farLeft  && back;
     const rightFlat = !nearRight && farRight && back;
+
+    // Count how many tiles the side corridor extends forward (used for outer-wall height).
+    let leftLen = 0;
+    if (!nearLeft) {
+      for (let k = d; k <= maxDepth; k++) {
+        if (isWall(player.x + lft.dx + k * fwd.dx, player.y + lft.dy + k * fwd.dy)) break;
+        leftLen++;
+      }
+    }
+    let rightLen = 0;
+    if (!nearRight) {
+      for (let k = d; k <= maxDepth; k++) {
+        if (isWall(player.x + rgt.dx + k * fwd.dx, player.y + rgt.dy + k * fwd.dy)) break;
+        rightLen++;
+      }
+    }
+
     scene.push({
       back,
       stairs,
@@ -101,6 +118,8 @@ function buildScene(map, maxDepth, enemies, items) {
       right: nearRight || rightFlat,
       leftFlat,
       rightFlat,
+      leftLen,
+      rightLen,
     });
   }
   return scene;

@@ -159,12 +159,10 @@ function renderView(ctx, scene) {
       }
     } else {
       // Side opening — outer wall of the parallel corridor.
-      // The outer wall is 2 units to the side, so its true distance is sqrt(d²+4).
-      // Using that effective depth gives it the correct (shorter) height and shade,
-      // matching the Dungeon Master visual where side-corridor walls are visibly
-      // shorter than the forward back wall.
+      // effDepth uses corridor length (leftLen) + lateral offset (2 tiles) so that
+      // short corridors show a tall nearby wall and long corridors a short distant wall.
       const wx        = Math.max(0, 2 * far.l - CX);
-      const effDepth  = Math.sqrt(d * d + 4);
+      const effDepth  = Math.sqrt(s.leftLen * s.leftLen + 4);
       const h         = Math.round(400 / effDepth);
       const wt        = CY - h / 2;
       const wb        = CY + h / 2;
@@ -196,7 +194,7 @@ function renderView(ctx, scene) {
       }
     } else {
       const wx        = Math.min(CANVAS_W, 2 * far.r - CX);
-      const effDepth  = Math.sqrt(d * d + 4);
+      const effDepth  = Math.sqrt(s.rightLen * s.rightLen + 4);
       const h         = Math.round(400 / effDepth);
       const wt        = CY - h / 2;
       const wb        = CY + h / 2;
