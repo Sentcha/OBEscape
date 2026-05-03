@@ -90,17 +90,21 @@ function buildScene(map, maxDepth, enemies, items) {
     const leftFlat  = !nearLeft  && farLeft  && back;
     const rightFlat = !nearRight && farRight && back;
 
-    // Count how many tiles the side corridor extends forward (used for outer-wall height).
+    // Count total side corridor length from the player (not from depth d), so all
+    // depth strips that show the same opening use a consistent outer-wall height.
+    // Search up to maxDepth+16 so very long corridors read as distant.
     let leftLen = 0;
     if (!nearLeft) {
-      for (let k = d; k <= maxDepth; k++) {
+      const cap = maxDepth + 16;
+      for (let k = 1; k <= cap; k++) {
         if (isWall(player.x + lft.dx + k * fwd.dx, player.y + lft.dy + k * fwd.dy)) break;
         leftLen++;
       }
     }
     let rightLen = 0;
     if (!nearRight) {
-      for (let k = d; k <= maxDepth; k++) {
+      const cap = maxDepth + 16;
+      for (let k = 1; k <= cap; k++) {
         if (isWall(player.x + rgt.dx + k * fwd.dx, player.y + rgt.dy + k * fwd.dy)) break;
         rightLen++;
       }
