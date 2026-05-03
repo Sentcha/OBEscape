@@ -158,15 +158,21 @@ function renderView(ctx, scene) {
         maybeDrawGlyph(ctx, (near.l + far.l) / 2, CY, sz, shade, nx + lft.dx, ny + lft.dy, 1);
       }
     } else {
-      // Side opening — draw the near face of the branch corridor entry wall.
-      // x: 1 corridor-width further left from the far portal edge, clamped to screen.
-      // y: sized to the FAR portal so the face sits at the correct perspective depth.
-      //    Ceiling and floor of the junction reveal above and below via the background.
-      const wx = Math.max(0, 2 * far.l - CX);
-      ctx.fillStyle = shadeColor(COLORS.wallSide, shade);
-      ctx.fillRect(wx, far.t, far.l - wx, far.b - far.t);
-      const sz = Math.min(far.l - wx, far.b - far.t) * 0.30;
-      maybeDrawGlyph(ctx, (wx + far.l) / 2, CY, sz, shade, fx + lft.dx, fy + lft.dy, 3);
+      // Side opening — outer wall of the parallel corridor.
+      // The outer wall is 2 units to the side, so its true distance is sqrt(d²+4).
+      // Using that effective depth gives it the correct (shorter) height and shade,
+      // matching the Dungeon Master visual where side-corridor walls are visibly
+      // shorter than the forward back wall.
+      const wx        = Math.max(0, 2 * far.l - CX);
+      const effDepth  = Math.sqrt(d * d + 4);
+      const h         = Math.round(400 / effDepth);
+      const wt        = CY - h / 2;
+      const wb        = CY + h / 2;
+      const effShade  = shadeAtDepth(effDepth);
+      ctx.fillStyle   = shadeColor(COLORS.wallSide, effShade);
+      ctx.fillRect(wx, wt, far.l - wx, wb - wt);
+      const sz = Math.min(far.l - wx, wb - wt) * 0.30;
+      if (sz > 5) maybeDrawGlyph(ctx, (wx + far.l) / 2, CY, sz, effShade, fx + lft.dx, fy + lft.dy, 3);
     }
 
     // Right wall: either a flat extension of the back wall, or a perspective trapezoid.
@@ -189,11 +195,16 @@ function renderView(ctx, scene) {
         maybeDrawGlyph(ctx, (far.r + near.r) / 2, CY, sz, shade, nx + rgt.dx, ny + rgt.dy, 2);
       }
     } else {
-      const wx = Math.min(CANVAS_W, 2 * far.r - CX);
-      ctx.fillStyle = shadeColor(COLORS.wallSide, shade);
-      ctx.fillRect(far.r, far.t, wx - far.r, far.b - far.t);
-      const sz = Math.min(wx - far.r, far.b - far.t) * 0.30;
-      maybeDrawGlyph(ctx, (far.r + wx) / 2, CY, sz, shade, fx + rgt.dx, fy + rgt.dy, 4);
+      const wx        = Math.min(CANVAS_W, 2 * far.r - CX);
+      const effDepth  = Math.sqrt(d * d + 4);
+      const h         = Math.round(400 / effDepth);
+      const wt        = CY - h / 2;
+      const wb        = CY + h / 2;
+      const effShade  = shadeAtDepth(effDepth);
+      ctx.fillStyle   = shadeColor(COLORS.wallSide, effShade);
+      ctx.fillRect(far.r, wt, wx - far.r, wb - wt);
+      const sz = Math.min(wx - far.r, wb - wt) * 0.30;
+      if (sz > 5) maybeDrawGlyph(ctx, (far.r + wx) / 2, CY, sz, effShade, fx + rgt.dx, fy + rgt.dy, 4);
     }
   }
 
