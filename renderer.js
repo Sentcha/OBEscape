@@ -158,15 +158,22 @@ function renderView(ctx, scene) {
         maybeDrawGlyph(ctx, (near.l + far.l) / 2, CY, sz, shade, nx + lft.dx, ny + lft.dy, 1);
       }
     } else {
-      // Side opening — draw the near face of the branch corridor entry wall.
-      // x: 1 corridor-width further left from the far portal edge, clamped to screen.
-      // y: sized to the FAR portal so the face sits at the correct perspective depth.
-      //    Ceiling and floor of the junction reveal above and below via the background.
-      const wx = Math.max(0, 2 * far.l - CX);
-      ctx.fillStyle = shadeColor(COLORS.wallSide, shade);
-      ctx.fillRect(wx, far.t, far.l - wx, far.b - far.t);
-      const sz = Math.min(far.l - wx, far.b - far.t) * 0.30;
-      maybeDrawGlyph(ctx, (wx + far.l) / 2, CY, sz, shade, fx + lft.dx, fy + lft.dy, 3);
+      // Side opening — draw the far face of the parallel corridor as a receding trapezoid.
+      // At d=1 both wx values clamp to 0 (zero width), letting the background ceiling/floor
+      // show through and give the impression of depth.
+      const wx_far  = Math.max(0, 2 * far.l  - CX);
+      const wx_near = Math.max(0, 2 * near.l - CX);
+      fillPoly(ctx, [
+        [wx_near, near.t],
+        [wx_far,  far.t],
+        [wx_far,  far.b],
+        [wx_near, near.b],
+      ], shadeColor(COLORS.wallSide, shade));
+      const w = wx_far - wx_near;
+      if (w > 4) {
+        const sz = Math.min(w, far.b - far.t) * 0.30;
+        maybeDrawGlyph(ctx, (wx_near + wx_far) / 2, CY, sz, shade, fx + lft.dx, fy + lft.dy, 3);
+      }
     }
 
     // Right wall: either a flat extension of the back wall, or a perspective trapezoid.
@@ -189,11 +196,19 @@ function renderView(ctx, scene) {
         maybeDrawGlyph(ctx, (far.r + near.r) / 2, CY, sz, shade, nx + rgt.dx, ny + rgt.dy, 2);
       }
     } else {
-      const wx = Math.min(CANVAS_W, 2 * far.r - CX);
-      ctx.fillStyle = shadeColor(COLORS.wallSide, shade);
-      ctx.fillRect(far.r, far.t, wx - far.r, far.b - far.t);
-      const sz = Math.min(wx - far.r, far.b - far.t) * 0.30;
-      maybeDrawGlyph(ctx, (far.r + wx) / 2, CY, sz, shade, fx + rgt.dx, fy + rgt.dy, 4);
+      const wx_far  = Math.min(CANVAS_W, 2 * far.r  - CX);
+      const wx_near = Math.min(CANVAS_W, 2 * near.r - CX);
+      fillPoly(ctx, [
+        [wx_far,  far.t],
+        [wx_near, near.t],
+        [wx_near, near.b],
+        [wx_far,  far.b],
+      ], shadeColor(COLORS.wallSide, shade));
+      const w = wx_near - wx_far;
+      if (w > 4) {
+        const sz = Math.min(w, far.b - far.t) * 0.30;
+        maybeDrawGlyph(ctx, (wx_far + wx_near) / 2, CY, sz, shade, fx + rgt.dx, fy + rgt.dy, 4);
+      }
     }
   }
 
