@@ -159,18 +159,22 @@ function renderView(ctx, scene) {
       }
     } else {
       // Side opening — perspective trapezoid for the outer wall of the parallel corridor.
-      // The outer wall sits at x_world = -1.5 (one full cell-width past the opening),
-      // which projects to 3*far.l - 2*CX at depth d (vs. the incorrect 2*far.l - CX).
+      // Outer wall is at x_world=-1.5, projecting to 3*far.l - 2*CX.
+      // When the near edge is geometrically off-screen (clamped to 0), extend its height
+      // to VIEW_TOP/VIEW_BOT so the trapezoid fills the full corridor height at the canvas
+      // edge, giving the DM-style impression of a corridor receding into the distance.
       const wx_far  = Math.max(0, 3 * far.l  - 2 * CX);
       const wx_near = Math.max(0, 3 * near.l - 2 * CX);
+      const lnt = (3 * near.l - 2 * CX < 0) ? VIEW_TOP : near.t;
+      const lnb = (3 * near.l - 2 * CX < 0) ? VIEW_BOT : near.b;
       fillPoly(ctx, [
-        [wx_near, near.t],
+        [wx_near, lnt],
         [wx_far,  far.t],
         [wx_far,  far.b],
-        [wx_near, near.b],
+        [wx_near, lnb],
       ], shadeColor(COLORS.wallSide, shade));
       const w = wx_far - wx_near;
-      const h = (far.b - far.t + near.b - near.t) / 2;
+      const h = (far.b - far.t + lnb - lnt) / 2;
       const sz = Math.min(w, h) * 0.30;
       if (sz > 5) maybeDrawGlyph(ctx, (wx_near + wx_far) / 2, CY, sz, shade, fx + lft.dx, fy + lft.dy, 3);
     }
@@ -197,14 +201,16 @@ function renderView(ctx, scene) {
     } else {
       const wx_far  = Math.min(CANVAS_W, 3 * far.r  - 2 * CX);
       const wx_near = Math.min(CANVAS_W, 3 * near.r - 2 * CX);
+      const rnt = (3 * near.r - 2 * CX > CANVAS_W) ? VIEW_TOP : near.t;
+      const rnb = (3 * near.r - 2 * CX > CANVAS_W) ? VIEW_BOT : near.b;
       fillPoly(ctx, [
         [wx_far,  far.t],
-        [wx_near, near.t],
-        [wx_near, near.b],
+        [wx_near, rnt],
+        [wx_near, rnb],
         [wx_far,  far.b],
       ], shadeColor(COLORS.wallSide, shade));
       const w = wx_near - wx_far;
-      const h = (far.b - far.t + near.b - near.t) / 2;
+      const h = (far.b - far.t + rnb - rnt) / 2;
       const sz = Math.min(w, h) * 0.30;
       if (sz > 5) maybeDrawGlyph(ctx, (wx_far + wx_near) / 2, CY, sz, shade, fx + rgt.dx, fy + rgt.dy, 4);
     }
