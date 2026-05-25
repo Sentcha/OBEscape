@@ -140,11 +140,27 @@ function renderView(ctx, scene) {
     // Left wall: either a flat extension of the back wall, or a perspective trapezoid.
     if (s.left) {
       if (s.leftFlat) {
-        // Part of a perpendicular wall — flat rectangle at back-wall height, same color.
-        ctx.fillStyle = shadeColor(COLORS.wallBack, shade);
-        ctx.fillRect(near.l, far.t, far.l - near.l, far.b - far.t);
-        const sz = Math.min(far.l - near.l, far.b - far.t) * 0.30;
-        maybeDrawGlyph(ctx, (near.l + far.l) / 2, (far.t + far.b) / 2, sz, shade, fx, fy, 1);
+        if (3 * far.l - 2 * CX > 0) {
+          // Outer wall is on-screen at this depth: draw the outer corridor wall as a trapezoid.
+          const wx_far  = Math.max(0, 3 * far.l  - 2 * CX);
+          const wx_near = Math.max(0, 3 * near.l - 2 * CX);
+          fillPoly(ctx, [
+            [wx_near, near.t],
+            [wx_far,  far.t],
+            [wx_far,  far.b],
+            [wx_near, near.b],
+          ], shadeColor(COLORS.wallSide, shade));
+          const w = wx_far - wx_near;
+          const h = (far.b - far.t + near.b - near.t) / 2;
+          const sz = Math.min(w, h) * 0.30;
+          if (sz > 5) maybeDrawGlyph(ctx, (wx_near + wx_far) / 2, CY, sz, shade, fx + lft.dx, fy + lft.dy, 3);
+        } else {
+          // Outer wall off-screen: draw the perpendicular face (T-junction / shallow alcove).
+          ctx.fillStyle = shadeColor(COLORS.wallBack, shade);
+          ctx.fillRect(near.l, far.t, far.l - near.l, far.b - far.t);
+          const sz = Math.min(far.l - near.l, far.b - far.t) * 0.30;
+          maybeDrawGlyph(ctx, (near.l + far.l) / 2, (far.t + far.b) / 2, sz, shade, fx, fy, 1);
+        }
       } else {
         fillPoly(ctx, [
           [near.l, near.t],
@@ -178,10 +194,27 @@ function renderView(ctx, scene) {
     // Right wall: either a flat extension of the back wall, or a perspective trapezoid.
     if (s.right) {
       if (s.rightFlat) {
-        ctx.fillStyle = shadeColor(COLORS.wallBack, shade);
-        ctx.fillRect(far.r, far.t, near.r - far.r, far.b - far.t);
-        const sz = Math.min(near.r - far.r, far.b - far.t) * 0.30;
-        maybeDrawGlyph(ctx, (far.r + near.r) / 2, (far.t + far.b) / 2, sz, shade, fx, fy, 2);
+        if (3 * far.r - 2 * CX < CANVAS_W) {
+          // Outer wall is on-screen at this depth: draw the outer corridor wall as a trapezoid.
+          const wx_far  = Math.min(CANVAS_W, 3 * far.r  - 2 * CX);
+          const wx_near = Math.min(CANVAS_W, 3 * near.r - 2 * CX);
+          fillPoly(ctx, [
+            [wx_far,  far.t],
+            [wx_near, near.t],
+            [wx_near, near.b],
+            [wx_far,  far.b],
+          ], shadeColor(COLORS.wallSide, shade));
+          const w = wx_near - wx_far;
+          const h = (far.b - far.t + near.b - near.t) / 2;
+          const sz = Math.min(w, h) * 0.30;
+          if (sz > 5) maybeDrawGlyph(ctx, (wx_far + wx_near) / 2, CY, sz, shade, fx + rgt.dx, fy + rgt.dy, 4);
+        } else {
+          // Outer wall off-screen: draw the perpendicular face (T-junction / shallow alcove).
+          ctx.fillStyle = shadeColor(COLORS.wallBack, shade);
+          ctx.fillRect(far.r, far.t, near.r - far.r, far.b - far.t);
+          const sz = Math.min(near.r - far.r, far.b - far.t) * 0.30;
+          maybeDrawGlyph(ctx, (far.r + near.r) / 2, (far.t + far.b) / 2, sz, shade, fx, fy, 2);
+        }
       } else {
         fillPoly(ctx, [
           [far.r,  far.t],
