@@ -140,7 +140,7 @@ function renderView(ctx, scene) {
     // Left wall: either a flat extension of the back wall, or a perspective trapezoid.
     if (s.left) {
       if (s.leftFlat) {
-        if (s.leftParallel) {
+        if (s.leftParallel && 3 * far.l - 2 * CX > 0) {
           // Side was already open before this depth: parallel corridor end — draw outer wall.
           const wx_far  = Math.max(0, 3 * far.l  - 2 * CX);
           const wx_near = Math.max(0, 3 * near.l - 2 * CX);
@@ -194,7 +194,7 @@ function renderView(ctx, scene) {
     // Right wall: either a flat extension of the back wall, or a perspective trapezoid.
     if (s.right) {
       if (s.rightFlat) {
-        if (s.rightParallel) {
+        if (s.rightParallel && 3 * far.r - 2 * CX < CANVAS_W) {
           // Side was already open before this depth: parallel corridor end — draw outer wall.
           const wx_far  = Math.min(CANVAS_W, 3 * far.r  - 2 * CX);
           const wx_near = Math.min(CANVAS_W, 3 * near.r - 2 * CX);
