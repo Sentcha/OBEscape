@@ -61,6 +61,13 @@ function buildScene(map, maxDepth, enemies, items) {
 
   function isWall(x, y) { return tileAt(x, y) === TILE.WALL; }
 
+  // Track whether each side was open at the previous depth, so we can tell
+  // the renderer whether a leftFlat/rightFlat fired because a parallel corridor
+  // ended (leftParallel=true → draw outer wall) or because a short branch ended
+  // (leftParallel=false → draw perpendicular face).
+  let leftOpen  = !isWall(player.x + lft.dx, player.y + lft.dy);
+  let rightOpen = !isWall(player.x + rgt.dx, player.y + rgt.dy);
+
   const scene = [];
   for (let d = 1; d <= maxDepth; d++) {
     // far = the tile d steps ahead (used for the back wall check).
@@ -90,6 +97,8 @@ function buildScene(map, maxDepth, enemies, items) {
     // regardless of whether there is a back wall, so branches are always visible.
     const leftFlat  = !nearLeft  && farLeft;
     const rightFlat = !nearRight && farRight;
+    const leftParallel  = leftFlat  && leftOpen;
+    const rightParallel = rightFlat && rightOpen;
 
     scene.push({
       back,
@@ -100,7 +109,12 @@ function buildScene(map, maxDepth, enemies, items) {
       right: nearRight || rightFlat,
       leftFlat,
       rightFlat,
+      leftParallel,
+      rightParallel,
     });
+
+    leftOpen  = !nearLeft;
+    rightOpen = !nearRight;
   }
   return scene;
 }

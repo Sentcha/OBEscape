@@ -140,8 +140,8 @@ function renderView(ctx, scene) {
     // Left wall: either a flat extension of the back wall, or a perspective trapezoid.
     if (s.left) {
       if (s.leftFlat) {
-        if (3 * far.l - 2 * CX > 0) {
-          // Outer wall is on-screen at this depth: draw the outer corridor wall as a trapezoid.
+        if (s.leftParallel) {
+          // Side was already open before this depth: parallel corridor end — draw outer wall.
           const wx_far  = Math.max(0, 3 * far.l  - 2 * CX);
           const wx_near = Math.max(0, 3 * near.l - 2 * CX);
           fillPoly(ctx, [
@@ -155,7 +155,7 @@ function renderView(ctx, scene) {
           const sz = Math.min(w, h) * 0.30;
           if (sz > 5) maybeDrawGlyph(ctx, (wx_near + wx_far) / 2, CY, sz, shade, fx + lft.dx, fy + lft.dy, 3);
         } else {
-          // Outer wall off-screen: draw the perpendicular face (T-junction / shallow alcove).
+          // Side was closed before this depth: branch end — draw perpendicular face.
           ctx.fillStyle = shadeColor(COLORS.wallBack, shade);
           ctx.fillRect(near.l, far.t, far.l - near.l, far.b - far.t);
           const sz = Math.min(far.l - near.l, far.b - far.t) * 0.30;
@@ -194,8 +194,8 @@ function renderView(ctx, scene) {
     // Right wall: either a flat extension of the back wall, or a perspective trapezoid.
     if (s.right) {
       if (s.rightFlat) {
-        if (3 * far.r - 2 * CX < CANVAS_W) {
-          // Outer wall is on-screen at this depth: draw the outer corridor wall as a trapezoid.
+        if (s.rightParallel) {
+          // Side was already open before this depth: parallel corridor end — draw outer wall.
           const wx_far  = Math.min(CANVAS_W, 3 * far.r  - 2 * CX);
           const wx_near = Math.min(CANVAS_W, 3 * near.r - 2 * CX);
           fillPoly(ctx, [
@@ -209,7 +209,7 @@ function renderView(ctx, scene) {
           const sz = Math.min(w, h) * 0.30;
           if (sz > 5) maybeDrawGlyph(ctx, (wx_far + wx_near) / 2, CY, sz, shade, fx + rgt.dx, fy + rgt.dy, 4);
         } else {
-          // Outer wall off-screen: draw the perpendicular face (T-junction / shallow alcove).
+          // Side was closed before this depth: branch end — draw perpendicular face.
           ctx.fillStyle = shadeColor(COLORS.wallBack, shade);
           ctx.fillRect(far.r, far.t, near.r - far.r, far.b - far.t);
           const sz = Math.min(near.r - far.r, far.b - far.t) * 0.30;
