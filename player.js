@@ -61,6 +61,13 @@ function buildScene(map, maxDepth, enemies, items) {
 
   function isWall(x, y) { return tileAt(x, y) === TILE.WALL; }
 
+  // Track whether each side was open at the previous depth, so we can tell
+  // the renderer whether a leftFlat/rightFlat fired because a parallel corridor
+  // ended (leftParallel=true → draw outer wall) or because a short branch ended
+  // (leftParallel=false → draw perpendicular face).
+  let leftOpen  = !isWall(player.x + lft.dx, player.y + lft.dy);
+  let rightOpen = !isWall(player.x + rgt.dx, player.y + rgt.dy);
+
   const scene = [];
   for (let d = 1; d <= maxDepth; d++) {
     // far = the tile d steps ahead (used for the back wall check).
@@ -85,23 +92,29 @@ function buildScene(map, maxDepth, enemies, items) {
     const farLeft   = isWall(fx + lft.dx, fy + lft.dy);
     const farRight  = isWall(fx + rgt.dx, fy + rgt.dy);
 
-    // flat = front-face extension of the back wall (not a side corridor wall).
-    // True when the near side is open but the far side is walled AND a back wall exists.
-    const leftFlat  = !nearLeft  && farLeft  && back;
-    const rightFlat = !nearRight && farRight && back;
+    // flat = the south-facing wall face visible through a branch opening.
+    // True whenever the near side is open and the far side has a wall to the side —
+    // regardless of whether there is a back wall, so branches are always visible.
+    const leftFlat  = !nearLeft  && farLeft;
+    const rightFlat = !nearRight && farRight;
+    const leftParallel  = leftFlat  && leftOpen;
+    const rightParallel = rightFlat && rightOpen;
+
     scene.push({
       back,
       stairs,
       enemy,
       item,
-      // Only include farLeft/farRight when they form a flat back-wall extension.
-      // farLeft && !back means a wall resuming after a branch opening — the next
-      // depth segment's nearLeft will catch it, so drawing here would block the opening.
       left:  nearLeft  || leftFlat,
       right: nearRight || rightFlat,
       leftFlat,
       rightFlat,
+      leftParallel,
+      rightParallel,
     });
+
+    leftOpen  = !nearLeft;
+    rightOpen = !nearRight;
   }
   return scene;
 }

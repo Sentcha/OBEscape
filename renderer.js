@@ -140,11 +140,27 @@ function renderView(ctx, scene) {
     // Left wall: either a flat extension of the back wall, or a perspective trapezoid.
     if (s.left) {
       if (s.leftFlat) {
-        // Part of a perpendicular wall — flat rectangle at back-wall height, same color.
-        ctx.fillStyle = shadeColor(COLORS.wallBack, shade);
-        ctx.fillRect(near.l, far.t, far.l - near.l, far.b - far.t);
-        const sz = Math.min(far.l - near.l, far.b - far.t) * 0.30;
-        maybeDrawGlyph(ctx, (near.l + far.l) / 2, (far.t + far.b) / 2, sz, shade, fx, fy, 1);
+        if (s.leftParallel && 3 * far.l - 2 * CX > 0) {
+          // Side was already open before this depth: parallel corridor end — draw outer wall.
+          const wx_far  = Math.max(0, 3 * far.l  - 2 * CX);
+          const wx_near = Math.max(0, 3 * near.l - 2 * CX);
+          fillPoly(ctx, [
+            [wx_near, near.t],
+            [wx_far,  far.t],
+            [wx_far,  far.b],
+            [wx_near, near.b],
+          ], shadeColor(COLORS.wallSide, shade));
+          const w = wx_far - wx_near;
+          const h = (far.b - far.t + near.b - near.t) / 2;
+          const sz = Math.min(w, h) * 0.30;
+          if (sz > 5) maybeDrawGlyph(ctx, (wx_near + wx_far) / 2, CY, sz, shade, fx + lft.dx, fy + lft.dy, 3);
+        } else {
+          // Side was closed before this depth: branch end — draw perpendicular face.
+          ctx.fillStyle = shadeColor(COLORS.wallBack, shade);
+          ctx.fillRect(near.l, far.t, far.l - near.l, far.b - far.t);
+          const sz = Math.min(far.l - near.l, far.b - far.t) * 0.30;
+          maybeDrawGlyph(ctx, (near.l + far.l) / 2, (far.t + far.b) / 2, sz, shade, fx, fy, 1);
+        }
       } else {
         fillPoly(ctx, [
           [near.l, near.t],
@@ -158,24 +174,47 @@ function renderView(ctx, scene) {
         maybeDrawGlyph(ctx, (near.l + far.l) / 2, CY, sz, shade, nx + lft.dx, ny + lft.dy, 1);
       }
     } else {
-      // Side opening — draw the near face of the branch corridor entry wall.
-      // x: 1 corridor-width further left from the far portal edge, clamped to screen.
-      // y: sized to the FAR portal so the face sits at the correct perspective depth.
-      //    Ceiling and floor of the junction reveal above and below via the background.
-      const wx = Math.max(0, 2 * far.l - CX);
-      ctx.fillStyle = shadeColor(COLORS.wallSide, shade);
-      ctx.fillRect(wx, far.t, far.l - wx, far.b - far.t);
-      const sz = Math.min(far.l - wx, far.b - far.t) * 0.30;
-      maybeDrawGlyph(ctx, (wx + far.l) / 2, CY, sz, shade, fx + lft.dx, fy + lft.dy, 3);
+      // Side opening — perspective trapezoid for the outer wall of the parallel corridor.
+      // The outer wall sits at x_world = -1.5 (one full cell-width past the opening),
+      // which projects to 3*far.l - 2*CX at depth d (vs. the incorrect 2*far.l - CX).
+      const wx_far  = Math.max(0, 3 * far.l  - 2 * CX);
+      const wx_near = Math.max(0, 3 * near.l - 2 * CX);
+      fillPoly(ctx, [
+        [wx_near, near.t],
+        [wx_far,  far.t],
+        [wx_far,  far.b],
+        [wx_near, near.b],
+      ], shadeColor(COLORS.wallSide, shade));
+      const w = wx_far - wx_near;
+      const h = (far.b - far.t + near.b - near.t) / 2;
+      const sz = Math.min(w, h) * 0.30;
+      if (sz > 5) maybeDrawGlyph(ctx, (wx_near + wx_far) / 2, CY, sz, shade, fx + lft.dx, fy + lft.dy, 3);
     }
 
     // Right wall: either a flat extension of the back wall, or a perspective trapezoid.
     if (s.right) {
       if (s.rightFlat) {
-        ctx.fillStyle = shadeColor(COLORS.wallBack, shade);
-        ctx.fillRect(far.r, far.t, near.r - far.r, far.b - far.t);
-        const sz = Math.min(near.r - far.r, far.b - far.t) * 0.30;
-        maybeDrawGlyph(ctx, (far.r + near.r) / 2, (far.t + far.b) / 2, sz, shade, fx, fy, 2);
+        if (s.rightParallel && 3 * far.r - 2 * CX < CANVAS_W) {
+          // Side was already open before this depth: parallel corridor end — draw outer wall.
+          const wx_far  = Math.min(CANVAS_W, 3 * far.r  - 2 * CX);
+          const wx_near = Math.min(CANVAS_W, 3 * near.r - 2 * CX);
+          fillPoly(ctx, [
+            [wx_far,  far.t],
+            [wx_near, near.t],
+            [wx_near, near.b],
+            [wx_far,  far.b],
+          ], shadeColor(COLORS.wallSide, shade));
+          const w = wx_near - wx_far;
+          const h = (far.b - far.t + near.b - near.t) / 2;
+          const sz = Math.min(w, h) * 0.30;
+          if (sz > 5) maybeDrawGlyph(ctx, (wx_far + wx_near) / 2, CY, sz, shade, fx + rgt.dx, fy + rgt.dy, 4);
+        } else {
+          // Side was closed before this depth: branch end — draw perpendicular face.
+          ctx.fillStyle = shadeColor(COLORS.wallBack, shade);
+          ctx.fillRect(far.r, far.t, near.r - far.r, far.b - far.t);
+          const sz = Math.min(near.r - far.r, far.b - far.t) * 0.30;
+          maybeDrawGlyph(ctx, (far.r + near.r) / 2, (far.t + far.b) / 2, sz, shade, fx, fy, 2);
+        }
       } else {
         fillPoly(ctx, [
           [far.r,  far.t],
@@ -189,11 +228,18 @@ function renderView(ctx, scene) {
         maybeDrawGlyph(ctx, (far.r + near.r) / 2, CY, sz, shade, nx + rgt.dx, ny + rgt.dy, 2);
       }
     } else {
-      const wx = Math.min(CANVAS_W, 2 * far.r - CX);
-      ctx.fillStyle = shadeColor(COLORS.wallSide, shade);
-      ctx.fillRect(far.r, far.t, wx - far.r, far.b - far.t);
-      const sz = Math.min(wx - far.r, far.b - far.t) * 0.30;
-      maybeDrawGlyph(ctx, (far.r + wx) / 2, CY, sz, shade, fx + rgt.dx, fy + rgt.dy, 4);
+      const wx_far  = Math.min(CANVAS_W, 3 * far.r  - 2 * CX);
+      const wx_near = Math.min(CANVAS_W, 3 * near.r - 2 * CX);
+      fillPoly(ctx, [
+        [wx_far,  far.t],
+        [wx_near, near.t],
+        [wx_near, near.b],
+        [wx_far,  far.b],
+      ], shadeColor(COLORS.wallSide, shade));
+      const w = wx_near - wx_far;
+      const h = (far.b - far.t + near.b - near.t) / 2;
+      const sz = Math.min(w, h) * 0.30;
+      if (sz > 5) maybeDrawGlyph(ctx, (wx_far + wx_near) / 2, CY, sz, shade, fx + rgt.dx, fy + rgt.dy, 4);
     }
   }
 
