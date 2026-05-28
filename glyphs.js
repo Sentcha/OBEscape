@@ -161,7 +161,7 @@ const DECO_DENSITY = 0.10;
 
 // Draw a glyph on a wall face centred at (cx, cy) with the given available size and shade.
 // mapX/mapY/side uniquely identify the wall face; the hash determines whether to draw and which glyph.
-function maybeDrawGlyph(ctx, cx, cy, size, shade, mapX, mapY, side) {
+function maybeDrawGlyph(ctx, cx, cy, size, shade, mapX, mapY, side, shearY = 0) {
   if (hash31(mapX, mapY, side) >= DECO_DENSITY) return;
   const s = size;
   if (s < 5) return;
@@ -172,6 +172,7 @@ function maybeDrawGlyph(ctx, cx, cy, size, shade, mapX, mapY, side) {
   ctx.lineWidth   = Math.max(1, s * 0.055);
   ctx.lineCap     = 'round';
   ctx.lineJoin    = 'round';
+  if (shearY !== 0) ctx.transform(1, shearY, 0, 1, 0, -shearY * cx);
   fn(ctx, cx, cy, s);
   ctx.restore();
 }
