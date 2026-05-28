@@ -161,7 +161,7 @@ function renderView(ctx, scene) {
           ctx.moveTo(wx_near, near.t); ctx.lineTo(wx_far, far.t);
           ctx.lineTo(wx_far, far.b);   ctx.lineTo(wx_near, near.b);
           ctx.closePath(); ctx.clip();
-          maybeDrawGlyph(ctx, CX - 840 / (d - 0.5), CY, 60 / (d - 0.5), shade, fx + lft.dx, fy + lft.dy, absFaceLeft);
+          maybeDrawGlyph(ctx, CX - 840 / (d - 0.5), CY, 60 / (d - 0.5), shade, fx + lft.dx, fy + lft.dy, absFaceBack);
           ctx.restore();
         } else {
           // Side was closed before this depth: branch end — draw perpendicular face.
@@ -202,7 +202,7 @@ function renderView(ctx, scene) {
       ctx.moveTo(wx_near, near.t); ctx.lineTo(wx_far, far.t);
       ctx.lineTo(wx_far, far.b);   ctx.lineTo(wx_near, near.b);
       ctx.closePath(); ctx.clip();
-      maybeDrawGlyph(ctx, CX - 840 / (d - 0.5), CY, 60 / (d - 0.5), shade, fx + lft.dx, fy + lft.dy, absFaceLeft);
+      maybeDrawGlyph(ctx, CX - 840 / (d - 0.5), CY, 60 / (d - 0.5), shade, fx + lft.dx, fy + lft.dy, absFaceBack);
       ctx.restore();
     }
 
@@ -224,7 +224,7 @@ function renderView(ctx, scene) {
           ctx.moveTo(wx_far, far.t);   ctx.lineTo(wx_near, near.t);
           ctx.lineTo(wx_near, near.b); ctx.lineTo(wx_far, far.b);
           ctx.closePath(); ctx.clip();
-          maybeDrawGlyph(ctx, CX + 840 / (d - 0.5), CY, 60 / (d - 0.5), shade, fx + rgt.dx, fy + rgt.dy, absFaceRight);
+          maybeDrawGlyph(ctx, CX + 840 / (d - 0.5), CY, 60 / (d - 0.5), shade, fx + rgt.dx, fy + rgt.dy, absFaceBack);
           ctx.restore();
         } else {
           // Side was closed before this depth: branch end — draw perpendicular face.
@@ -262,7 +262,7 @@ function renderView(ctx, scene) {
       ctx.moveTo(wx_far, far.t);   ctx.lineTo(wx_near, near.t);
       ctx.lineTo(wx_near, near.b); ctx.lineTo(wx_far, far.b);
       ctx.closePath(); ctx.clip();
-      maybeDrawGlyph(ctx, CX + 840 / (d - 0.5), CY, 60 / (d - 0.5), shade, fx + rgt.dx, fy + rgt.dy, absFaceRight);
+      maybeDrawGlyph(ctx, CX + 840 / (d - 0.5), CY, 60 / (d - 0.5), shade, fx + rgt.dx, fy + rgt.dy, absFaceBack);
       ctx.restore();
     }
   }
