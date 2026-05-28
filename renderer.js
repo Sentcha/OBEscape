@@ -115,6 +115,12 @@ function renderView(ctx, scene) {
   const absFaceLeft  = (player.facing + 1) % 4; // face of left-side tile pointing into corridor
   const absFaceRight = (player.facing + 3) % 4; // face of right-side tile pointing into corridor
 
+  // Vertical shear factors that tilt glyphs to follow the wall's perspective lines.
+  // Derived from portal formula: side walls slope at 200/280, outer walls at 200/840.
+  // Left walls use +shear, right walls use −shear.
+  const SHEAR_SIDE  = 200 / 280; // 5/7  — main corridor side-wall slope
+  const SHEAR_OUTER = 200 / 840; // 5/21 — outer-wall slope (3× further from centre)
+
   for (let d = maxDepth; d >= 1; d--) {
     const s     = scene[d - 1];
     const far   = makePortal(d);
@@ -159,7 +165,7 @@ function renderView(ctx, scene) {
           const w = wx_far - wx_near;
           const h = (far.b - far.t + near.b - near.t) / 2;
           const sz = Math.min(w, h) * 0.30;
-          if (sz > 5) maybeDrawGlyph(ctx, (wx_near + wx_far) / 2, CY, sz, shade, fx + lft.dx, fy + lft.dy, absFaceLeft);
+          if (sz > 5) maybeDrawGlyph(ctx, (wx_near + wx_far) / 2, CY, sz, shade, fx + lft.dx, fy + lft.dy, absFaceLeft, SHEAR_OUTER);
         } else {
           // Side was closed before this depth: branch end — draw perpendicular face.
           ctx.fillStyle = shadeColor(COLORS.wallBack, shade);
@@ -177,7 +183,7 @@ function renderView(ctx, scene) {
         const availW = far.l - near.l;
         const availH = ((near.b - near.t) + (far.b - far.t)) / 2;
         const sz = Math.min(availW, availH) * 0.30;
-        maybeDrawGlyph(ctx, (near.l + far.l) / 2, CY, sz, shade, nx + lft.dx, ny + lft.dy, absFaceLeft);
+        maybeDrawGlyph(ctx, (near.l + far.l) / 2, CY, sz, shade, nx + lft.dx, ny + lft.dy, absFaceLeft, SHEAR_SIDE);
       }
     } else {
       // Side opening — perspective trapezoid for the outer wall of the parallel corridor.
@@ -194,7 +200,7 @@ function renderView(ctx, scene) {
       const w = wx_far - wx_near;
       const h = (far.b - far.t + near.b - near.t) / 2;
       const sz = Math.min(w, h) * 0.30;
-      if (sz > 5) maybeDrawGlyph(ctx, (wx_near + wx_far) / 2, CY, sz, shade, fx + lft.dx, fy + lft.dy, absFaceLeft);
+      if (sz > 5) maybeDrawGlyph(ctx, (wx_near + wx_far) / 2, CY, sz, shade, fx + lft.dx, fy + lft.dy, absFaceLeft, SHEAR_OUTER);
     }
 
     // Right wall: either a flat extension of the back wall, or a perspective trapezoid.
@@ -213,7 +219,7 @@ function renderView(ctx, scene) {
           const w = wx_near - wx_far;
           const h = (far.b - far.t + near.b - near.t) / 2;
           const sz = Math.min(w, h) * 0.30;
-          if (sz > 5) maybeDrawGlyph(ctx, (wx_far + wx_near) / 2, CY, sz, shade, fx + rgt.dx, fy + rgt.dy, absFaceRight);
+          if (sz > 5) maybeDrawGlyph(ctx, (wx_far + wx_near) / 2, CY, sz, shade, fx + rgt.dx, fy + rgt.dy, absFaceRight, -SHEAR_OUTER);
         } else {
           // Side was closed before this depth: branch end — draw perpendicular face.
           ctx.fillStyle = shadeColor(COLORS.wallBack, shade);
@@ -231,7 +237,7 @@ function renderView(ctx, scene) {
         const availW = near.r - far.r;
         const availH = ((near.b - near.t) + (far.b - far.t)) / 2;
         const sz = Math.min(availW, availH) * 0.30;
-        maybeDrawGlyph(ctx, (far.r + near.r) / 2, CY, sz, shade, nx + rgt.dx, ny + rgt.dy, absFaceRight);
+        maybeDrawGlyph(ctx, (far.r + near.r) / 2, CY, sz, shade, nx + rgt.dx, ny + rgt.dy, absFaceRight, -SHEAR_SIDE);
       }
     } else {
       const wx_far  = Math.min(CANVAS_W, 3 * far.r  - 2 * CX);
@@ -245,7 +251,7 @@ function renderView(ctx, scene) {
       const w = wx_near - wx_far;
       const h = (far.b - far.t + near.b - near.t) / 2;
       const sz = Math.min(w, h) * 0.30;
-      if (sz > 5) maybeDrawGlyph(ctx, (wx_far + wx_near) / 2, CY, sz, shade, fx + rgt.dx, fy + rgt.dy, absFaceRight);
+      if (sz > 5) maybeDrawGlyph(ctx, (wx_far + wx_near) / 2, CY, sz, shade, fx + rgt.dx, fy + rgt.dy, absFaceRight, -SHEAR_OUTER);
     }
   }
 
