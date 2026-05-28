@@ -164,7 +164,7 @@ function renderView(ctx, scene) {
           ctx.moveTo(wx_near, near.t); ctx.lineTo(wx_far, far.t);
           ctx.lineTo(wx_far, far.b);   ctx.lineTo(wx_near, near.b);
           ctx.closePath(); ctx.clip();
-          maybeDrawGlyph(ctx, CX - 840 / (d - 0.5), CY, 240 / (d - 0.5), shade, fx + lft.dx, fy + lft.dy, absFaceLeft, SHEAR_OUTER);
+          maybeDrawGlyph(ctx, CX - 840 / (d - 0.5), CY, 60 / (d - 0.5), shade, fx + lft.dx, fy + lft.dy, absFaceLeft, SHEAR_OUTER);
           ctx.restore();
         } else {
           // Side was closed before this depth: branch end — draw perpendicular face.
@@ -185,7 +185,7 @@ function renderView(ctx, scene) {
         ctx.moveTo(near.l, near.t); ctx.lineTo(far.l, far.t);
         ctx.lineTo(far.l, far.b);   ctx.lineTo(near.l, near.b);
         ctx.closePath(); ctx.clip();
-        maybeDrawGlyph(ctx, CX - 280 / (d - 0.5), CY, 240 / (d - 0.5), shade, nx + lft.dx, ny + lft.dy, absFaceLeft, SHEAR_SIDE);
+        maybeDrawGlyph(ctx, CX - 280 / (d - 0.5), CY, 60 / (d - 0.5), shade, nx + lft.dx, ny + lft.dy, absFaceLeft, SHEAR_SIDE);
         ctx.restore();
       }
     } else {
@@ -205,7 +205,7 @@ function renderView(ctx, scene) {
       ctx.moveTo(wx_near, near.t); ctx.lineTo(wx_far, far.t);
       ctx.lineTo(wx_far, far.b);   ctx.lineTo(wx_near, near.b);
       ctx.closePath(); ctx.clip();
-      maybeDrawGlyph(ctx, CX - 840 / (d - 0.5), CY, 240 / (d - 0.5), shade, fx + lft.dx, fy + lft.dy, absFaceLeft, SHEAR_OUTER);
+      maybeDrawGlyph(ctx, CX - 840 / (d - 0.5), CY, 60 / (d - 0.5), shade, fx + lft.dx, fy + lft.dy, absFaceLeft, SHEAR_OUTER);
       ctx.restore();
     }
 
@@ -227,7 +227,7 @@ function renderView(ctx, scene) {
           ctx.moveTo(wx_far, far.t);   ctx.lineTo(wx_near, near.t);
           ctx.lineTo(wx_near, near.b); ctx.lineTo(wx_far, far.b);
           ctx.closePath(); ctx.clip();
-          maybeDrawGlyph(ctx, CX + 840 / (d - 0.5), CY, 240 / (d - 0.5), shade, fx + rgt.dx, fy + rgt.dy, absFaceRight, -SHEAR_OUTER);
+          maybeDrawGlyph(ctx, CX + 840 / (d - 0.5), CY, 60 / (d - 0.5), shade, fx + rgt.dx, fy + rgt.dy, absFaceRight, -SHEAR_OUTER);
           ctx.restore();
         } else {
           // Side was closed before this depth: branch end — draw perpendicular face.
@@ -248,7 +248,7 @@ function renderView(ctx, scene) {
         ctx.moveTo(far.r, far.t);   ctx.lineTo(near.r, near.t);
         ctx.lineTo(near.r, near.b); ctx.lineTo(far.r, far.b);
         ctx.closePath(); ctx.clip();
-        maybeDrawGlyph(ctx, CX + 280 / (d - 0.5), CY, 240 / (d - 0.5), shade, nx + rgt.dx, ny + rgt.dy, absFaceRight, -SHEAR_SIDE);
+        maybeDrawGlyph(ctx, CX + 280 / (d - 0.5), CY, 60 / (d - 0.5), shade, nx + rgt.dx, ny + rgt.dy, absFaceRight, -SHEAR_SIDE);
         ctx.restore();
       }
     } else {
@@ -265,7 +265,7 @@ function renderView(ctx, scene) {
       ctx.moveTo(wx_far, far.t);   ctx.lineTo(wx_near, near.t);
       ctx.lineTo(wx_near, near.b); ctx.lineTo(wx_far, far.b);
       ctx.closePath(); ctx.clip();
-      maybeDrawGlyph(ctx, CX + 840 / (d - 0.5), CY, 240 / (d - 0.5), shade, fx + rgt.dx, fy + rgt.dy, absFaceRight, -SHEAR_OUTER);
+      maybeDrawGlyph(ctx, CX + 840 / (d - 0.5), CY, 60 / (d - 0.5), shade, fx + rgt.dx, fy + rgt.dy, absFaceRight, -SHEAR_OUTER);
       ctx.restore();
     }
   }
