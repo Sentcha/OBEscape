@@ -163,7 +163,7 @@ const DECO_DENSITY = 0.10;
 // mapX/mapY/side uniquely identify the wall face; the hash determines whether to draw and which glyph.
 function maybeDrawGlyph(ctx, cx, cy, size, shade, mapX, mapY, side) {
   if (hash31(mapX, mapY, side) >= DECO_DENSITY) return;
-  const s = Math.min(size, 70);
+  const s = size;
   if (s < 5) return;
   const fn = GLYPHS[Math.floor(hash31(mapX + 97, mapY + 31, side) * GLYPHS.length)];
   ctx.save();
