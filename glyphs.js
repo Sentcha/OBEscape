@@ -157,7 +157,7 @@ function drawSunDisc(ctx, cx, cy, s) {
 
 const GLYPHS = [drawAnkh, drawEye, drawScarab, drawDjed, drawWas, drawCartouche, drawFeather, drawSunDisc];
 
-const DECO_DENSITY = 0.10;
+const DECO_DENSITY = 0.30; // DEBUG: tripled for branch testing, revert to 0.10 before merging
 
 // Draw a glyph on a wall face centred at (cx, cy) with the given available size and shade.
 // mapX/mapY/side uniquely identify the wall face; the hash determines whether to draw and which glyph.
