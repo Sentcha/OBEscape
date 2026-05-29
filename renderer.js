@@ -171,7 +171,7 @@ function renderView(ctx, scene) {
           ctx.beginPath();
           ctx.rect(near.l, far.t, far.l - near.l, far.b - far.t);
           ctx.clip();
-          maybeDrawGlyph(ctx, (near.l + far.l) / 2, (far.t + far.b) / 2, 120 / d, shade, fx + lft.dx, fy + lft.dy, absFaceBack);
+          maybeDrawGlyph(ctx, CX - 420 / d, (far.t + far.b) / 2, 120 / d, shade, fx + lft.dx, fy + lft.dy, absFaceBack);
           ctx.restore();
         }
       } else {
@@ -238,7 +238,7 @@ function renderView(ctx, scene) {
           ctx.beginPath();
           ctx.rect(far.r, far.t, near.r - far.r, far.b - far.t);
           ctx.clip();
-          maybeDrawGlyph(ctx, (far.r + near.r) / 2, (far.t + far.b) / 2, 120 / d, shade, fx + rgt.dx, fy + rgt.dy, absFaceBack);
+          maybeDrawGlyph(ctx, CX + 420 / d, (far.t + far.b) / 2, 120 / d, shade, fx + rgt.dx, fy + rgt.dy, absFaceBack);
           ctx.restore();
         }
       } else {
