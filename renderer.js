@@ -167,8 +167,12 @@ function renderView(ctx, scene) {
           // Side was closed before this depth: branch end — draw perpendicular face.
           ctx.fillStyle = shadeColor(COLORS.wallBack, shade);
           ctx.fillRect(near.l, far.t, far.l - near.l, far.b - far.t);
-          const sz = Math.min(far.l - near.l, far.b - far.t) * 0.30;
-          maybeDrawGlyph(ctx, (near.l + far.l) / 2, (far.t + far.b) / 2, sz, shade, fx + lft.dx, fy + lft.dy, absFaceBack);
+          ctx.save();
+          ctx.beginPath();
+          ctx.rect(near.l, far.t, far.l - near.l, far.b - far.t);
+          ctx.clip();
+          maybeDrawGlyph(ctx, (near.l + far.l) / 2, (far.t + far.b) / 2, 120 / d, shade, fx + lft.dx, fy + lft.dy, absFaceBack);
+          ctx.restore();
         }
       } else {
         fillPoly(ctx, [
@@ -230,8 +234,12 @@ function renderView(ctx, scene) {
           // Side was closed before this depth: branch end — draw perpendicular face.
           ctx.fillStyle = shadeColor(COLORS.wallBack, shade);
           ctx.fillRect(far.r, far.t, near.r - far.r, far.b - far.t);
-          const sz = Math.min(near.r - far.r, far.b - far.t) * 0.30;
-          maybeDrawGlyph(ctx, (far.r + near.r) / 2, (far.t + far.b) / 2, sz, shade, fx + rgt.dx, fy + rgt.dy, absFaceBack);
+          ctx.save();
+          ctx.beginPath();
+          ctx.rect(far.r, far.t, near.r - far.r, far.b - far.t);
+          ctx.clip();
+          maybeDrawGlyph(ctx, (far.r + near.r) / 2, (far.t + far.b) / 2, 120 / d, shade, fx + rgt.dx, fy + rgt.dy, absFaceBack);
+          ctx.restore();
         }
       } else {
         fillPoly(ctx, [
