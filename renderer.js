@@ -186,7 +186,10 @@ function renderView(ctx, scene) {
         ctx.moveTo(near.l, near.t); ctx.lineTo(far.l, far.t);
         ctx.lineTo(far.l, far.b);   ctx.lineTo(near.l, near.b);
         ctx.closePath(); ctx.clip();
-        maybeDrawGlyph(ctx, CX - 280 / (d - 0.5), CY, 120 / (d - 0.5), shade, nx + lft.dx, ny + lft.dy, absFaceLeft);
+        const gcxL = CX - 280 / (d - 0.5);
+        const RL   = (far.l - near.l) * (d - 0.5) / 560;
+        ctx.transform(RL, 0, 0, 1, gcxL * (1 - RL), 0);
+        maybeDrawGlyph(ctx, gcxL, CY, 120 / (d - 0.5), shade, nx + lft.dx, ny + lft.dy, absFaceLeft);
         ctx.restore();
       }
     } else {
@@ -253,7 +256,10 @@ function renderView(ctx, scene) {
         ctx.moveTo(far.r, far.t);   ctx.lineTo(near.r, near.t);
         ctx.lineTo(near.r, near.b); ctx.lineTo(far.r, far.b);
         ctx.closePath(); ctx.clip();
-        maybeDrawGlyph(ctx, CX + 280 / (d - 0.5), CY, 120 / (d - 0.5), shade, nx + rgt.dx, ny + rgt.dy, absFaceRight);
+        const gcxR = CX + 280 / (d - 0.5);
+        const RR   = (near.r - far.r) * (d - 0.5) / 560;
+        ctx.transform(RR, 0, 0, 1, gcxR * (1 - RR), 0);
+        maybeDrawGlyph(ctx, gcxR, CY, 120 / (d - 0.5), shade, nx + rgt.dx, ny + rgt.dy, absFaceRight);
         ctx.restore();
       }
     } else {
