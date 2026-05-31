@@ -222,6 +222,21 @@ All enemies are ambiguous in nature — the convict cannot tell whether they are
 
 Enemies are placed at spawn points during map generation. They do not roam between turns unless the player is within 3 tiles.
 
+### Enemy Object
+
+```
+{
+  x:      int,    // grid column
+  y:      int,    // grid row
+  type:   string, // 'scarab' | 'snake' | 'hollow' | 'mummy' | 'anubisGuard'
+  facing: int,    // 0=North, 1=East, 2=South, 3=West — matches the player.facing convention
+  hp:     int,
+  maxHp:  int,
+}
+```
+
+`facing` is initialised at spawn to point down an open corridor axis (so enemies look purposeful in their environment). After each player action, any enemy with a clear straight-line view of the player rotates to face them. This drives directional sprite-frame selection; no combat mechanics are tied to it yet — see `sprites.md` for the frame-selection formula and the planned M7 awareness cone.
+
 ### Enemy Lore
 
 **The Scarab** — Black, glossy, the size of a greyhound. It doesn't slow when it sees him. It lowers its head and comes. Each encounter is one-on-one and over quickly. The narrow corridors of the upper levels make dodging its charge the first real skill the convict has to learn. The shell is too uniform, too perfect. It bleeds — something dark and slow — but even that doesn't look entirely right. *Sidestep the charge. Hit it while it's turning.*

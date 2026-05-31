@@ -84,6 +84,27 @@ Frame indices:
 
 Directions are **enemy-relative**, not world-relative. At render time the game computes the relative angle between the player's view direction and the enemy's facing to select the frame.
 
+### Selecting the frame
+
+```js
+// rel: how many 90° clockwise steps the enemy's facing is ahead of the player's.
+const rel        = (enemy.facing - player.facing + 4) % 4;
+const frameIndex = [1, 3, 0, 2][rel];
+// rel 0 → enemy faces same way as player → player sees enemy's back  → frame 1
+// rel 1 → enemy faces 90° right of player                           → frame 3 (right side)
+// rel 2 → enemy faces opposite to player → face-on                  → frame 0 (front)
+// rel 3 → enemy faces 90° left of player                            → frame 2 (left side)
+```
+
+Facing values follow the game's `0=N, 1=E, 2=S, 3=W` convention (`DIR` array in `player.js`).
+
+### Awareness (future / M7)
+
+`enemy.facing` is intended to later define a forward awareness cone. An enemy facing toward the
+player (rel ≈ 2) is **alert** and reacts immediately; one facing away (rel ≈ 0) is **unaware**
+and is a candidate for a sneak-attack bonus. This is not gated in the current code — facing is
+purely cosmetic until the M7 combat system is built.
+
 ### Drawing a specific frame
 
 ```js

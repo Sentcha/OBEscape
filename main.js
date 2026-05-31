@@ -469,14 +469,17 @@ window.addEventListener('load', () => {
       if (e.key === 'Escape') { gameState = 'menu'; draw(); }
       return;
     }
-    if (handleKey(e, map)) {
-      markVisited(player.x, player.y);
-      const itemIdx = items.findIndex(it => it.x === player.x && it.y === player.y);
-      if (itemIdx !== -1) pickupItem(items.splice(itemIdx, 1)[0]);
-      if (map[player.y][player.x] === TILE.STAIRS) descend();
-      draw();
-    }
+    if (handleKey(e, map)) resolvePlayerAction();
   });
+
+  function resolvePlayerAction() {
+    markVisited(player.x, player.y);
+    const itemIdx = items.findIndex(it => it.x === player.x && it.y === player.y);
+    if (itemIdx !== -1) pickupItem(items.splice(itemIdx, 1)[0]);
+    if (map[player.y][player.x] === TILE.STAIRS) descend();
+    updateEnemyFacing(map, enemies);
+    draw();
+  }
 
   function handlePointer(e) {
     e.preventDefault();
@@ -496,13 +499,7 @@ window.addEventListener('load', () => {
       return;
     }
     const key = getDpadKey(x, y) ?? getViewTapKey(x, y);
-    if (key && handleKey({ key }, map)) {
-      markVisited(player.x, player.y);
-      const itemIdx = items.findIndex(it => it.x === player.x && it.y === player.y);
-      if (itemIdx !== -1) pickupItem(items.splice(itemIdx, 1)[0]);
-      if (map[player.y][player.x] === TILE.STAIRS) descend();
-      draw();
-    }
+    if (key && handleKey({ key }, map)) resolvePlayerAction();
   }
 
   canvas.addEventListener('touchstart', handlePointer, { passive: false });

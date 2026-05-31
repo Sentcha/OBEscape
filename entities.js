@@ -23,6 +23,20 @@ const ENEMY_STATS = {
   anubisGuard: { hp: 20, maxHp: 20, attack: 7, defense: 6 },
 };
 
+// Pick an initial facing for an enemy at (x, y): a random open neighbour direction
+// so the enemy looks down its corridor. Falls back to a fully random choice if all
+// four sides are open or all are walled. Runs before TILE.ENEMY is rewritten to FLOOR
+// so the enemy's own tile is still a marker — we only test the four neighbours.
+function spawnFacing(map, x, y) {
+  const open = [];
+  if (map[y - 1]?.[x] !== TILE.WALL) open.push(0); // N
+  if (map[y]?.[x + 1] !== TILE.WALL) open.push(1); // E
+  if (map[y + 1]?.[x] !== TILE.WALL) open.push(2); // S
+  if (map[y]?.[x - 1] !== TILE.WALL) open.push(3); // W
+  const pool = open.length > 0 && open.length < 4 ? open : [0, 1, 2, 3];
+  return pool[Math.floor(Math.random() * pool.length)];
+}
+
 // Scan the map for TILE.ENEMY markers, convert each to a live enemy object,
 // and replace the tile with TILE.FLOOR so the map stays walkable.
 function loadEnemies(map, dungeonLevel) {
@@ -31,12 +45,43 @@ function loadEnemies(map, dungeonLevel) {
   for (let y = 0; y < map.length; y++)
     for (let x = 0; x < map[y].length; x++)
       if (map[y][x] === TILE.ENEMY) {
-        const type  = pool[Math.floor(Math.random() * pool.length)];
-        const stats = ENEMY_STATS[type];
-        enemies.push({ x, y, type, hp: stats.hp, maxHp: stats.maxHp });
+        const type   = pool[Math.floor(Math.random() * pool.length)];
+        const stats  = ENEMY_STATS[type];
+        const facing = spawnFacing(map, x, y);
+        enemies.push({ x, y, type, facing, hp: stats.hp, maxHp: stats.maxHp });
         map[y][x] = TILE.FLOOR;
       }
   return enemies;
+}
+
+// Returns true if every tile strictly between (x, y1) and (x, y2) is passable.
+function clearVertical(map, x, y1, y2) {
+  const [lo, hi] = y1 < y2 ? [y1, y2] : [y2, y1];
+  for (let y = lo + 1; y < hi; y++)
+    if (map[y]?.[x] === TILE.WALL) return false;
+  return true;
+}
+
+// Returns true if every tile strictly between (x1, y) and (x2, y) is passable.
+function clearHorizontal(map, y, x1, x2) {
+  const [lo, hi] = x1 < x2 ? [x1, x2] : [x2, x1];
+  for (let x = lo + 1; x < hi; x++)
+    if (map[y]?.[x] === TILE.WALL) return false;
+  return true;
+}
+
+// After each player action, any enemy with a clear straight-line view of the player
+// rotates to face them. Purely cosmetic — selects the sprite frame; no combat effect.
+function updateEnemyFacing(map, enemies) {
+  for (const e of enemies) {
+    if (e.x === player.x) {
+      if (clearVertical(map, e.x, e.y, player.y))
+        e.facing = player.y > e.y ? 2 : 0;
+    } else if (e.y === player.y) {
+      if (clearHorizontal(map, e.y, e.x, player.x))
+        e.facing = player.x > e.x ? 1 : 3;
+    }
+  }
 }
 
 // Dispatch to the correct sprite function.
