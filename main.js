@@ -469,10 +469,11 @@ window.addEventListener('load', () => {
       if (e.key === 'Escape') { gameState = 'menu'; draw(); }
       return;
     }
-    if (handleKey(e, map)) resolvePlayerAction();
+    const { acted, bumpedEnemy } = handleKey(e, map, enemies);
+    if (acted) resolvePlayerAction(bumpedEnemy);
   });
 
-  function resolvePlayerAction() {
+  function resolvePlayerAction(bumpedEnemy = null) {
     markVisited(player.x, player.y);
     const itemIdx = items.findIndex(it => it.x === player.x && it.y === player.y);
     if (itemIdx !== -1) pickupItem(items.splice(itemIdx, 1)[0]);
@@ -499,7 +500,10 @@ window.addEventListener('load', () => {
       return;
     }
     const key = getDpadKey(x, y) ?? getViewTapKey(x, y);
-    if (key && handleKey({ key }, map)) resolvePlayerAction();
+    if (key) {
+      const { acted, bumpedEnemy } = handleKey({ key }, map, enemies);
+      if (acted) resolvePlayerAction(bumpedEnemy);
+    }
   }
 
   canvas.addEventListener('touchstart', handlePointer, { passive: false });

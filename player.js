@@ -25,17 +25,19 @@ const player = {
   equippedArmor:   null,
 };
 
-// Move the player by (dx, dy) if the destination cell exists and is not a wall.
-// Noclip skips the wall check but still respects map bounds.
-function tryMove(map, dx, dy) {
+// Move the player by (dx, dy) if the destination is in bounds, not a wall, and not an enemy.
+// Returns 'moved', 'wall', or 'enemy'. Noclip bypasses wall and enemy checks.
+function tryMove(map, dx, dy, enemies) {
   const nx = player.x + dx;
   const ny = player.y + dy;
-  if (map[ny] !== undefined && map[ny][nx] !== undefined) {
-    if (debug.noclip || map[ny][nx] !== TILE.WALL) {
-      player.x = nx;
-      player.y = ny;
-    }
+  if (map[ny] === undefined || map[ny][nx] === undefined) return 'wall';
+  if (!debug.noclip) {
+    if (map[ny][nx] === TILE.WALL) return 'wall';
+    if (enemies.find(e => e.x === nx && e.y === ny)) return 'enemy';
   }
+  player.x = nx;
+  player.y = ny;
+  return 'moved';
 }
 
 // Build the scene description for the renderer from the player's current
@@ -120,23 +122,30 @@ function buildScene(map, maxDepth, enemies, items) {
 }
 
 // Process a keydown event and update the player state.
-// Returns true if anything changed (so the caller knows to redraw).
-function handleKey(e, map) {
+// Returns { acted: bool, bumpedEnemy: enemy|null }.
+// acted — true if the player used their turn (caller should redraw and advance game state).
+// bumpedEnemy — the enemy the player walked into forwards, if any; null otherwise.
+function handleKey(e, map, enemies) {
   const d = DIR[player.facing];
   switch (e.key) {
-    case 'ArrowUp':    case 'w': case 'W':
-      tryMove(map, d.dx, d.dy);
-      return true;
+    case 'ArrowUp':    case 'w': case 'W': {
+      const result = tryMove(map, d.dx, d.dy, enemies);
+      if (result === 'enemy') {
+        const nx = player.x + d.dx;
+        const ny = player.y + d.dy;
+        return { acted: true, bumpedEnemy: enemies.find(en => en.x === nx && en.y === ny) };
+      }
+      return { acted: true, bumpedEnemy: null };
+    }
     case 'ArrowDown':  case 's': case 'S':
-      tryMove(map, -d.dx, -d.dy);
-      return true;
+      tryMove(map, -d.dx, -d.dy, enemies);
+      return { acted: true, bumpedEnemy: null };
     case 'ArrowLeft':  case 'a': case 'A':
-      // +3 is the same as -1 but avoids negative modulo
       player.facing = (player.facing + 3) % 4;
-      return true;
+      return { acted: true, bumpedEnemy: null };
     case 'ArrowRight': case 'd': case 'D':
       player.facing = (player.facing + 1) % 4;
-      return true;
+      return { acted: true, bumpedEnemy: null };
   }
-  return false;
+  return { acted: false, bumpedEnemy: null };
 }
