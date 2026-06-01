@@ -488,15 +488,17 @@ window.addEventListener('load', () => {
       }
     }
     // Enemy retaliation — every surviving enemy adjacent to the player strikes back.
-    const totalDefense = player.defense + (player.equippedArmor?.defense ?? 0);
-    for (const e of enemies) {
-      if (Math.abs(e.x - player.x) + Math.abs(e.y - player.y) === 1) {
-        const dmg = Math.max(1, e.attack - totalDefense);
-        player.hp -= dmg;
-        logEvent(`The ${e.name} hits you for ${dmg}!`, '#e03030');
+    if (!debug.godMode) {
+      const totalDefense = player.defense + (player.equippedArmor?.defense ?? 0);
+      for (const e of enemies) {
+        if (Math.abs(e.x - player.x) + Math.abs(e.y - player.y) === 1) {
+          const dmg = Math.max(1, e.attack - totalDefense);
+          player.hp -= dmg;
+          logEvent(`The ${e.name} hits you for ${dmg}!`, '#e03030');
+        }
       }
+      checkDeath();
     }
-    checkDeath();
     markVisited(player.x, player.y);
     const itemIdx = items.findIndex(it => it.x === player.x && it.y === player.y);
     if (itemIdx !== -1) pickupItem(items.splice(itemIdx, 1)[0]);
