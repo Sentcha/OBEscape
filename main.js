@@ -212,11 +212,23 @@ window.addEventListener('load', () => {
     const d  = DIR[player.facing];
     const nx = player.x + d.dx;
     const ny = player.y + d.dy;
-    if (map[ny]?.[nx] === TILE.STAIRS) return 'STAIRS DOWN';
+    if (map[ny]?.[nx] === TILE.STAIRS) return { text: 'STAIRS DOWN', color: '#4fc3f7' };
     const item = items.find(it => it.x === nx && it.y === ny);
-    if (item) return item.name.toUpperCase();
-    if (enemies.find(e => e.x === nx && e.y === ny)) return 'ENEMY';
+    if (item) return { text: item.name.toUpperCase(), color: '#4fc3f7' };
+    const foe = enemies.find(e => e.x === nx && e.y === ny);
+    if (foe) return { text: `${foe.name.toUpperCase()}  ${foe.hp}/${foe.maxHp} HP`, color: '#e03030' };
     return null;
+  }
+
+  // Returns true if any live enemy is adjacent (Manhattan distance 1) to the player
+  // but NOT directly in front (those are already shown in the action prompt).
+  function hasFlankingEnemy() {
+    const fwd = DIR[player.facing];
+    return enemies.some(e => {
+      const dx = e.x - player.x, dy = e.y - player.y;
+      if (Math.abs(dx) + Math.abs(dy) !== 1) return false;
+      return !(dx === fwd.dx && dy === fwd.dy);
+    });
   }
 
   // ------------------------------------------------------------------
@@ -234,8 +246,9 @@ window.addEventListener('load', () => {
     ctx.fillStyle = gold;
     ctx.fillText('HP', 12, 25);
 
-    const fill = Math.round(barW * Math.max(0, player.hp / player.maxHp));
-    ctx.fillStyle = '#c03030';
+    const hpFrac = Math.max(0, player.hp / player.maxHp);
+    const fill = Math.round(barW * hpFrac);
+    ctx.fillStyle = hpFrac > 0.50 ? '#c03030' : hpFrac > 0.25 ? '#c07820' : '#c0b020';
     ctx.fillRect(barX, barY, fill, barH);
     ctx.strokeStyle = gold;
     ctx.lineWidth = 1;
@@ -269,13 +282,25 @@ window.addEventListener('load', () => {
     const prompt = getActionPrompt();
     if (prompt) {
       ctx.font = 'bold 13px Georgia, serif';
-      const tw = ctx.measureText(prompt).width;
+      const tw = ctx.measureText(prompt.text).width;
       const px = (canvas.width - tw) / 2;
       const py = VIEW_BOT + 50;
       ctx.fillStyle = 'rgba(0,0,0,0.55)';
       ctx.fillRect(px - 8, py - 16, tw + 16, 22);
-      ctx.fillStyle = gold;
-      ctx.fillText(prompt, px, py);
+      ctx.fillStyle = prompt.color;
+      ctx.fillText(prompt.text, px, py);
+    }
+
+    if (hasFlankingEnemy()) {
+      ctx.font = 'bold 13px Georgia, serif';
+      const warn = '! DANGER';
+      const tw = ctx.measureText(warn).width;
+      const px = (canvas.width - tw) / 2;
+      const py = VIEW_BOT + 72;
+      ctx.fillStyle = 'rgba(0,0,0,0.55)';
+      ctx.fillRect(px - 8, py - 16, tw + 16, 22);
+      ctx.fillStyle = '#e03030';
+      ctx.fillText(warn, px, py);
     }
 
     ctx.font = 'bold 11px monospace';
