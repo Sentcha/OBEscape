@@ -476,15 +476,37 @@ window.addEventListener('load', () => {
     if (acted) resolvePlayerAction(bumpedEnemy);
   });
 
+  // Roll a player attack. Returns { hit, crit, damage }.
+  // 15% miss chance; on a hit, 10% crit doubles damage.
+  function rollPlayerAttack(weaponAttack, targetDefense) {
+    if (Math.random() < 0.15) return { hit: false, crit: false, damage: 0 };
+    const roll = Math.ceil(Math.random() * 6);
+    const base = Math.max(1, roll + weaponAttack - targetDefense);
+    const crit = Math.random() < 0.10;
+    return { hit: true, crit, damage: crit ? base * 2 : base };
+  }
+
+  // Roll an enemy attack. Returns { hit, damage }. Enemies cannot crit.
+  function rollEnemyAttack(enemyAttack, targetDefense) {
+    if (Math.random() < 0.15) return { hit: false, damage: 0 };
+    const roll = Math.ceil(Math.random() * 6);
+    return { hit: true, damage: Math.max(1, roll + enemyAttack - targetDefense) };
+  }
+
   function resolvePlayerAction(bumpedEnemy = null) {
     if (bumpedEnemy) {
-      const dmg = Math.max(1, player.equippedWeapon.attack - bumpedEnemy.defense);
-      bumpedEnemy.hp -= dmg;
-      logEvent(`You hit the ${bumpedEnemy.name} for ${dmg}!`, '#f5d485');
-      if (bumpedEnemy.hp <= 0) {
-        enemies.splice(enemies.indexOf(bumpedEnemy), 1);
-        corpses.push({ x: bumpedEnemy.x, y: bumpedEnemy.y, type: bumpedEnemy.type });
-        logEvent(`The ${bumpedEnemy.name} is dead.`, '#e03030');
+      const { hit, crit, damage } = rollPlayerAttack(player.equippedWeapon.attack, bumpedEnemy.defense);
+      if (!hit) {
+        logEvent(`You miss the ${bumpedEnemy.name}.`, '#808080');
+      } else {
+        bumpedEnemy.hp -= damage;
+        if (crit) logEvent(`CRITICAL HIT! You hit the ${bumpedEnemy.name} for ${damage}!`, '#ffd700');
+        else       logEvent(`You hit the ${bumpedEnemy.name} for ${damage}.`, '#f5d485');
+        if (bumpedEnemy.hp <= 0) {
+          enemies.splice(enemies.indexOf(bumpedEnemy), 1);
+          corpses.push({ x: bumpedEnemy.x, y: bumpedEnemy.y, type: bumpedEnemy.type });
+          logEvent(`The ${bumpedEnemy.name} is dead.`, '#e03030');
+        }
       }
     }
     // Enemy retaliation — every surviving enemy adjacent to the player strikes back.
@@ -492,9 +514,12 @@ window.addEventListener('load', () => {
       const totalDefense = player.defense + (player.equippedArmor?.defense ?? 0);
       for (const e of enemies) {
         if (Math.abs(e.x - player.x) + Math.abs(e.y - player.y) === 1) {
-          const dmg = Math.max(1, e.attack - totalDefense);
-          player.hp -= dmg;
-          logEvent(`The ${e.name} hits you for ${dmg}!`, '#e03030');
+          const { hit, damage } = rollEnemyAttack(e.attack, totalDefense);
+          if (!hit) logEvent(`The ${e.name} misses you.`, '#808080');
+          else {
+            player.hp -= damage;
+            logEvent(`The ${e.name} hits you for ${damage}.`, '#e03030');
+          }
         }
       }
       checkDeath();
