@@ -49,7 +49,8 @@ function loadEnemies(map, dungeonLevel) {
         const stats  = ENEMY_STATS[type];
         const facing = spawnFacing(map, x, y);
         enemies.push({ x, y, type, name: stats.name, facing,
-                       hp: stats.hp, maxHp: stats.maxHp, defense: stats.defense });
+                       hp: stats.hp, maxHp: stats.maxHp,
+                       attack: stats.attack, defense: stats.defense });
         map[y][x] = TILE.FLOOR;
       }
   return enemies;

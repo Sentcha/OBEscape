@@ -35,6 +35,7 @@ window.addEventListener('load', () => {
     Object.assign(player, {
       x: 1, y: 1, facing: 2,
       hp: 20, maxHp: 20,
+      defense: 2,
       dungeonLevel: 1,
       inventory: [],
       equippedWeapon: { name: 'Bowie Knife', attack: 5, itemType: 'weapon' },
@@ -486,6 +487,16 @@ window.addEventListener('load', () => {
         logEvent(`The ${bumpedEnemy.name} is dead.`, '#e03030');
       }
     }
+    // Enemy retaliation — every surviving enemy adjacent to the player strikes back.
+    const totalDefense = player.defense + (player.equippedArmor?.defense ?? 0);
+    for (const e of enemies) {
+      if (Math.abs(e.x - player.x) + Math.abs(e.y - player.y) === 1) {
+        const dmg = Math.max(1, e.attack - totalDefense);
+        player.hp -= dmg;
+        logEvent(`The ${e.name} hits you for ${dmg}!`, '#e03030');
+      }
+    }
+    checkDeath();
     markVisited(player.x, player.y);
     const itemIdx = items.findIndex(it => it.x === player.x && it.y === player.y);
     if (itemIdx !== -1) pickupItem(items.splice(itemIdx, 1)[0]);

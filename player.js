@@ -19,6 +19,7 @@ const player = {
   facing:       2, // Start facing South (into the map, away from the top wall)
   hp:           20,
   maxHp:        20,
+  defense:      2,
   dungeonLevel:    1,
   inventory:       [],
   equippedWeapon:  { type: 'bowieKnife', name: 'Bowie Knife', attack: 4, itemType: 'weapon' },

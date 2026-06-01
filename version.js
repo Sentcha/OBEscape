@@ -1,6 +1,6 @@
 // Build info — updated automatically on each commit.
 const VERSION = {
   branch: 'main',
-  commit: '4a88214',
+  commit: '5449e0b',
   date:   '2026-05-31',
 };
