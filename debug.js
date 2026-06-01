@@ -1,4 +1,4 @@
-const debug = { enabled: false, noclip: false, godMode: false, showDpad: false };
+const debug = { enabled: false, noclip: false, godMode: false, showDpad: false, showEnemies: false };
 
 // Layout constants — shared by drawDebugPanel and getDebugHit so geometry stays in sync.
 const DBG_BTN   = { x: 744, y: 8, w: 48, h: 24 };
@@ -6,11 +6,12 @@ const DBG_PANEL = { x: 494, w: 300 };
 const DBG_ROW_H = 26;
 const DBG_PAD   = { x: 10, y: 8 };
 
-const DBG_CMDS = ['n', 'g', 'd', 't', 'x', 'l', 'r'];
+const DBG_CMDS = ['n', 'g', 'd', 'e', 't', 'x', 'l', 'r'];
 const DBG_LABELS = [
-  () => `N  noclip   [${debug.noclip   ? 'ON ' : 'OFF'}]`,
-  () => `G  god mode [${debug.godMode  ? 'ON ' : 'OFF'}]`,
-  () => `D  d-pad    [${debug.showDpad ? 'ON ' : 'OFF'}]`,
+  () => `N  noclip   [${debug.noclip       ? 'ON ' : 'OFF'}]`,
+  () => `G  god mode [${debug.godMode      ? 'ON ' : 'OFF'}]`,
+  () => `D  d-pad    [${debug.showDpad     ? 'ON ' : 'OFF'}]`,
+  () => `E  enemies  [${debug.showEnemies  ? 'ON ' : 'OFF'}]`,
   () =>  'T  teleport',
   () =>  'X  → stairs',
   () =>  'L  next level',

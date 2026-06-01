@@ -120,7 +120,7 @@ window.addEventListener('load', () => {
 
     ctx.fillStyle = '#e03030';
     for (const en of enemies)
-      if (visited[en.y][en.x])
+      if (debug.showEnemies || visited[en.y][en.x])
         ctx.fillRect(originX + en.x * CELL, originY + en.y * CELL, CELL - 1, CELL - 1);
 
     ctx.fillStyle = '#f5d485';
@@ -422,9 +422,10 @@ window.addEventListener('load', () => {
   function runDebugCmd(cmd) {
     switch (cmd) {
       case 'toggle': debug.enabled = !debug.enabled; break;
-      case 'n': debug.noclip   = !debug.noclip;   break;
-      case 'g': debug.godMode  = !debug.godMode;  break;
-      case 'd': debug.showDpad = !debug.showDpad; break;
+      case 'n': debug.noclip      = !debug.noclip;      break;
+      case 'g': debug.godMode     = !debug.godMode;     break;
+      case 'd': debug.showDpad    = !debug.showDpad;    break;
+      case 'e': debug.showEnemies = !debug.showEnemies; break;
       case 't': {
         const raw = prompt('Teleport to x,y:', `${player.x},${player.y}`);
         if (raw) {
