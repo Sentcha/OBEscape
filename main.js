@@ -131,9 +131,9 @@ window.addEventListener('load', () => {
   // Compass rose — rotates so current facing direction is always at top.
   // ------------------------------------------------------------------
   function drawCompass(ctx, facing) {
-    const cx   = 145;
-    const cy   = VIEW_BOT + 50;
-    const R    = 30;
+    const cx   = 160;
+    const cy   = VIEW_BOT + 90;
+    const R    = 38;
     const gold = '#f5d485';
 
     ctx.beginPath();
@@ -149,13 +149,13 @@ window.addEventListener('load', () => {
     ctx.rotate(-facing * Math.PI / 2);
 
     const labels = ['N', 'E', 'S', 'W'];
-    ctx.font = 'bold 9px Georgia, serif';
+    ctx.font = 'bold 13px Georgia, serif';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     for (let i = 0; i < 4; i++) {
       const a  = i * Math.PI / 2 - Math.PI / 2;
-      const tx = Math.cos(a) * (R - 8);
-      const ty = Math.sin(a) * (R - 8);
+      const tx = Math.cos(a) * (R - 12);
+      const ty = Math.sin(a) * (R - 12);
       ctx.fillStyle = labels[i] === 'N' ? '#e03030' : gold;
       ctx.fillText(labels[i], tx, ty);
     }
@@ -166,13 +166,13 @@ window.addEventListener('load', () => {
   }
 
   function drawEventLog() {
-    const x        = 185;
-    const startY   = VIEW_BOT + 16;
-    const lineH    = 17;
-    const maxLines = 5;
+    const x        = 205;
+    const startY   = VIEW_BOT + 24;
+    const lineH    = 22;
+    const maxLines = 4;
 
     const visible = eventLog.slice(-maxLines);
-    ctx.font = 'bold 11px Georgia, serif';
+    ctx.font = 'bold 20px Georgia, serif';
     ctx.textAlign = 'left';
     for (let i = 0; i < visible.length; i++) {
       ctx.fillStyle = visible[i].color;
@@ -236,15 +236,15 @@ window.addEventListener('load', () => {
   // ------------------------------------------------------------------
   function drawHUD() {
     const gold  = '#f5d485';
-    const serif = 'bold 12px Georgia, serif';
+    const serif = 'bold 22px Georgia, serif';
 
     ctx.fillStyle = 'rgba(0,0,0,0.55)';
-    ctx.fillRect(8, 6, 220, 88);
+    ctx.fillRect(8, 8, 260, 140);
 
-    const barX = 36, barY = 16, barW = 160, barH = 14;
+    const barX = 38, barY = 20, barW = 196, barH = 22;
     ctx.font = serif;
     ctx.fillStyle = gold;
-    ctx.fillText('HP', 12, 25);
+    ctx.fillText('HP', 12, 38);
 
     const hpFrac = Math.max(0, player.hp / player.maxHp);
     const fill = Math.round(barW * hpFrac);
@@ -257,48 +257,48 @@ window.addEventListener('load', () => {
     ctx.font = serif;
     ctx.fillStyle = gold;
     ctx.textAlign = 'right';
-    ctx.fillText(`${player.hp} / ${player.maxHp}`, 228, 25);
+    ctx.fillText(`${player.hp} / ${player.maxHp}`, 268, 38);
     ctx.textAlign = 'left';
 
     const wpn = player.equippedWeapon
       ? `${player.equippedWeapon.name.toUpperCase()}  +${player.equippedWeapon.attack}`
       : '--';
-    ctx.fillText(`[${wpn}]`, 12, 52);
+    ctx.fillText(`[${wpn}]`, 12, 80);
 
     const arm = player.equippedArmor
       ? `${player.equippedArmor.name.toUpperCase()}  ${player.equippedArmor.durability}/${player.equippedArmor.maxDurability}`
       : '--';
-    ctx.fillText(`[${arm}]`, 12, 72);
+    ctx.fillText(`[${arm}]`, 12, 118);
 
     const roman = ROMAN[player.dungeonLevel - 1] || String(player.dungeonLevel);
     ctx.textAlign = 'right';
-    ctx.font = 'bold 11px Georgia, serif';
+    ctx.font = 'bold 20px Georgia, serif';
     ctx.fillStyle = gold;
-    ctx.fillText('LEVEL', 790, 28);
-    ctx.font = 'bold 28px Georgia, serif';
-    ctx.fillText(roman, 790, 72);
+    ctx.fillText('LEVEL', 790, 38);
+    ctx.font = 'bold 42px Georgia, serif';
+    ctx.fillText(roman, 790, 105);
     ctx.textAlign = 'left';
 
     const prompt = getActionPrompt();
     if (prompt) {
-      ctx.font = 'bold 13px Georgia, serif';
+      ctx.font = 'bold 23px Georgia, serif';
       const tw = ctx.measureText(prompt.text).width;
       const px = (canvas.width - tw) / 2;
-      const py = VIEW_BOT + 50;
+      const py = VIEW_BOT + 116;
       ctx.fillStyle = 'rgba(0,0,0,0.55)';
-      ctx.fillRect(px - 8, py - 16, tw + 16, 22);
+      ctx.fillRect(px - 8, py - 20, tw + 16, 28);
       ctx.fillStyle = prompt.color;
       ctx.fillText(prompt.text, px, py);
     }
 
     if (hasFlankingEnemy()) {
-      ctx.font = 'bold 13px Georgia, serif';
+      ctx.font = 'bold 23px Georgia, serif';
       const warn = '! DANGER';
       const tw = ctx.measureText(warn).width;
       const px = (canvas.width - tw) / 2;
-      const py = VIEW_BOT + 72;
+      const py = VIEW_BOT + 148;
       ctx.fillStyle = 'rgba(0,0,0,0.55)';
-      ctx.fillRect(px - 8, py - 16, tw + 16, 22);
+      ctx.fillRect(px - 8, py - 20, tw + 16, 28);
       ctx.fillStyle = '#e03030';
       ctx.fillText(warn, px, py);
     }

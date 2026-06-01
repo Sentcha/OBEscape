@@ -1,9 +1,9 @@
 const CANVAS_W = 800;
-const CANVAS_H = 800;
-const CX = CANVAS_W / 2;
-const CY = CANVAS_H / 2;
-const VIEW_TOP = 100;
-const VIEW_BOT = 700;
+const CANVAS_H = 960;
+const CX = CANVAS_W / 2;    // 400
+const CY = CANVAS_H / 2;    // 480
+const VIEW_TOP = 180;        // CY - 300
+const VIEW_BOT = 780;        // CY + 300
 
 // A "portal" is the rectangular cross-section of the corridor at a given depth.
 // 1/d perspective: each deeper portal is proportionally smaller, converging on the center.
