@@ -92,7 +92,7 @@ window.addEventListener('load', () => {
   function drawMinimap() {
     const cols    = map[0].length;
     const rows    = map.length;
-    const CELL    = Math.floor(88 / Math.max(rows, cols));
+    const CELL    = Math.floor(160 / Math.max(rows, cols));
     const originX = 10;
     const originY = VIEW_BOT + 8;
 
@@ -131,7 +131,7 @@ window.addEventListener('load', () => {
   // Compass rose — rotates so current facing direction is always at top.
   // ------------------------------------------------------------------
   function drawCompass(ctx, facing) {
-    const cx   = 160;
+    const cx   = 215;
     const cy   = VIEW_BOT + 90;
     const R    = 38;
     const gold = '#f5d485';
@@ -166,7 +166,7 @@ window.addEventListener('load', () => {
   }
 
   function drawEventLog() {
-    const x        = 205;
+    const x        = 265;
     const startY   = VIEW_BOT + 24;
     const lineH    = 22;
     const maxLines = 4;

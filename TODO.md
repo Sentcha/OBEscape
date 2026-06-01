@@ -13,6 +13,7 @@
 - [x] Fix hieroglyphics rendering
 
 ## Advanced Features
+- [ ] Tap-to-expand minimap — small minimap by default; tapping it opens a full-canvas map overlay at a large cell size, dismissed with a second tap or close button
 - [ ] Responsive canvas — use `window.devicePixelRatio` to render at native device pixel density (crisp text on retina/high-DPI screens). Requires scaling `canvas.width/height` by dpr at startup and adding a resize listener. All draw coordinates stay in logical 800-wide units via `ctx.scale(dpr, dpr)`.
 - [ ] Noise mechanics based on speed of user input
 - [ ] Sound effects
