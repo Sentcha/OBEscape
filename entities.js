@@ -16,11 +16,11 @@ const LEVEL_ENEMIES = {
 };
 
 const ENEMY_STATS = {
-  scarab:      { name: 'Scarab',       hp: 6,  maxHp: 6,  attack: 4, defense: 1 },
-  snake:       { name: 'Snake',        hp: 5,  maxHp: 5,  attack: 5, defense: 0 },
-  hollow:      { name: 'The Hollow',   hp: 7,  maxHp: 7,  attack: 3, defense: 0 },
-  mummy:       { name: 'Mummy',        hp: 12, maxHp: 12, attack: 4, defense: 3 },
-  anubisGuard: { name: 'Anubis Guard', hp: 20, maxHp: 20, attack: 7, defense: 6 },
+  scarab:      { name: 'Scarab',       hp: 6,  maxHp: 6,  attack: 4, defense: 1, movePeriod: 1 },
+  snake:       { name: 'Snake',        hp: 5,  maxHp: 5,  attack: 5, defense: 0, movePeriod: 1 },
+  hollow:      { name: 'The Hollow',   hp: 7,  maxHp: 7,  attack: 3, defense: 0, movePeriod: 2 },
+  mummy:       { name: 'Mummy',        hp: 12, maxHp: 12, attack: 4, defense: 3, movePeriod: 2 },
+  anubisGuard: { name: 'Anubis Guard', hp: 20, maxHp: 20, attack: 7, defense: 6, movePeriod: 1 },
 };
 
 // Pick an initial facing for an enemy at (x, y): a random open neighbour direction
@@ -50,7 +50,8 @@ function loadEnemies(map, dungeonLevel) {
         const facing = spawnFacing(map, x, y);
         enemies.push({ x, y, type, name: stats.name, facing,
                        hp: stats.hp, maxHp: stats.maxHp,
-                       attack: stats.attack, defense: stats.defense });
+                       attack: stats.attack, defense: stats.defense,
+                       movePeriod: stats.movePeriod, moveTimer: 0 });
         map[y][x] = TILE.FLOOR;
       }
   return enemies;
@@ -83,6 +84,42 @@ function updateEnemyFacing(map, enemies) {
       if (clearHorizontal(map, e.y, e.x, player.x))
         e.facing = player.x > e.x ? 1 : 3;
     }
+  }
+}
+
+// True when the enemy shares a row or column with the player and has a clear sightline.
+function isAlerted(map, e) {
+  if (e.x === player.x) return clearVertical(map, e.x, e.y, player.y);
+  if (e.y === player.y) return clearHorizontal(map, e.y, e.x, player.x);
+  return false;
+}
+
+// Move the enemy one step toward the player using a greedy approach:
+// prefer the axis with greater distance; try the other axis if blocked.
+// Will not step onto walls, other enemies, or the player's tile.
+function stepTowardPlayer(map, enemy, enemies) {
+  const dx = player.x - enemy.x;
+  const dy = player.y - enemy.y;
+
+  const steps = [];
+  if (Math.abs(dx) >= Math.abs(dy)) {
+    if (dx !== 0) steps.push([Math.sign(dx), 0]);
+    if (dy !== 0) steps.push([0, Math.sign(dy)]);
+  } else {
+    if (dy !== 0) steps.push([0, Math.sign(dy)]);
+    if (dx !== 0) steps.push([Math.sign(dx), 0]);
+  }
+
+  for (const [sdx, sdy] of steps) {
+    const nx = enemy.x + sdx;
+    const ny = enemy.y + sdy;
+    if (map[ny]?.[nx] === TILE.WALL) continue;
+    if (nx === player.x && ny === player.y) continue;
+    if (enemies.some(e => e !== enemy && e.x === nx && e.y === ny)) continue;
+    enemy.x = nx;
+    enemy.y = ny;
+    enemy.facing = DIR.findIndex(d => d.dx === sdx && d.dy === sdy);
+    return;
   }
 }
 

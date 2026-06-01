@@ -534,16 +534,20 @@ window.addEventListener('load', () => {
         }
       }
     }
-    // Enemy retaliation — every surviving enemy adjacent to the player strikes back.
+    // Enemy turn — each enemy either attacks (if adjacent) or moves toward the player (if alerted).
     if (!debug.godMode) {
       const totalDefense = player.defense + (player.equippedArmor?.defense ?? 0);
       for (const e of enemies) {
-        if (Math.abs(e.x - player.x) + Math.abs(e.y - player.y) === 1) {
+        const dist = Math.abs(e.x - player.x) + Math.abs(e.y - player.y);
+        if (dist === 1) {
           const { hit, damage } = rollEnemyAttack(e.attack, totalDefense);
           if (!hit) logEvent(`The ${e.name} misses you.`, '#808080');
-          else {
-            player.hp -= damage;
-            logEvent(`The ${e.name} hits you for ${damage}.`, '#e03030');
+          else { player.hp -= damage; logEvent(`The ${e.name} hits you for ${damage}.`, '#e03030'); }
+        } else if (isAlerted(map, e)) {
+          e.moveTimer++;
+          if (e.moveTimer >= e.movePeriod) {
+            e.moveTimer = 0;
+            stepTowardPlayer(map, e, enemies);
           }
         }
       }
