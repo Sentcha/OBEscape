@@ -474,6 +474,11 @@ window.addEventListener('load', () => {
   });
 
   function resolvePlayerAction(bumpedEnemy = null) {
+    if (bumpedEnemy) {
+      const dmg = Math.max(1, player.equippedWeapon.attack - bumpedEnemy.defense);
+      bumpedEnemy.hp -= dmg;
+      logEvent(`You hit the ${bumpedEnemy.name} for ${dmg}!`, '#f5d485');
+    }
     markVisited(player.x, player.y);
     const itemIdx = items.findIndex(it => it.x === player.x && it.y === player.y);
     if (itemIdx !== -1) pickupItem(items.splice(itemIdx, 1)[0]);

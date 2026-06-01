@@ -16,11 +16,11 @@ const LEVEL_ENEMIES = {
 };
 
 const ENEMY_STATS = {
-  scarab:      { hp: 6,  maxHp: 6,  attack: 4, defense: 1 },
-  snake:       { hp: 5,  maxHp: 5,  attack: 5, defense: 0 },
-  hollow:      { hp: 7,  maxHp: 7,  attack: 3, defense: 0 },
-  mummy:       { hp: 12, maxHp: 12, attack: 4, defense: 3 },
-  anubisGuard: { hp: 20, maxHp: 20, attack: 7, defense: 6 },
+  scarab:      { name: 'Scarab',       hp: 6,  maxHp: 6,  attack: 4, defense: 1 },
+  snake:       { name: 'Snake',        hp: 5,  maxHp: 5,  attack: 5, defense: 0 },
+  hollow:      { name: 'The Hollow',   hp: 7,  maxHp: 7,  attack: 3, defense: 0 },
+  mummy:       { name: 'Mummy',        hp: 12, maxHp: 12, attack: 4, defense: 3 },
+  anubisGuard: { name: 'Anubis Guard', hp: 20, maxHp: 20, attack: 7, defense: 6 },
 };
 
 // Pick an initial facing for an enemy at (x, y): a random open neighbour direction
@@ -48,7 +48,8 @@ function loadEnemies(map, dungeonLevel) {
         const type   = pool[Math.floor(Math.random() * pool.length)];
         const stats  = ENEMY_STATS[type];
         const facing = spawnFacing(map, x, y);
-        enemies.push({ x, y, type, facing, hp: stats.hp, maxHp: stats.maxHp });
+        enemies.push({ x, y, type, name: stats.name, facing,
+                       hp: stats.hp, maxHp: stats.maxHp, defense: stats.defense });
         map[y][x] = TILE.FLOOR;
       }
   return enemies;
