@@ -10,7 +10,7 @@ window.addEventListener('load', () => {
   let difficulty = 'standard';
 
   // Run-level state — undefined until startRun() is called.
-  let map, maxDepth, enemies, items, visited;
+  let map, maxDepth, enemies, items, corpses, visited;
 
   const eventLog = [];  // { msg, color } — newest last, capped at 20
 
@@ -45,6 +45,7 @@ window.addEventListener('load', () => {
     maxDepth = map[0].length - 2;
     enemies  = difficulty === 'explorer' ? [] : loadEnemies(map, 1);
     items    = difficulty === 'explorer' ? [] : loadItems(map, 1);
+    corpses  = [];
     visited  = makeVisited();
     markVisited(1, 1);
     eventLog.length = 0;
@@ -79,6 +80,7 @@ window.addEventListener('load', () => {
     maxDepth = map[0].length - 2;
     enemies  = difficulty === 'explorer' ? [] : loadEnemies(map, player.dungeonLevel);
     items    = difficulty === 'explorer' ? [] : loadItems(map, player.dungeonLevel);
+    corpses  = [];
     visited  = makeVisited();
     markVisited(1, 1);
   }
@@ -434,7 +436,7 @@ window.addEventListener('load', () => {
 
     ctx.fillStyle = '#080808';
     ctx.fillRect(0, 0, CANVAS_W, CANVAS_H);
-    renderView(ctx, buildScene(map, maxDepth, enemies, items));
+    renderView(ctx, buildScene(map, maxDepth, enemies, items, corpses));
 
     if (gameState === 'won')  { drawWinScreen();      return; }
     if (gameState === 'dead') { drawGameOverScreen();  return; }
@@ -478,6 +480,11 @@ window.addEventListener('load', () => {
       const dmg = Math.max(1, player.equippedWeapon.attack - bumpedEnemy.defense);
       bumpedEnemy.hp -= dmg;
       logEvent(`You hit the ${bumpedEnemy.name} for ${dmg}!`, '#f5d485');
+      if (bumpedEnemy.hp <= 0) {
+        enemies.splice(enemies.indexOf(bumpedEnemy), 1);
+        corpses.push({ x: bumpedEnemy.x, y: bumpedEnemy.y, type: bumpedEnemy.type });
+        logEvent(`The ${bumpedEnemy.name} is dead.`, '#e03030');
+      }
     }
     markVisited(player.x, player.y);
     const itemIdx = items.findIndex(it => it.x === player.x && it.y === player.y);

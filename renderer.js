@@ -138,10 +138,13 @@ function renderView(ctx, scene) {
     if (s.stairs) drawStairs(ctx, near, far, shade);
 
     // Item sprite: drawn on the floor of the far portal.
-    if (s.item)  drawItem (ctx, far, shade, s.item.type);
+    if (s.item)   drawItem  (ctx, far, shade, s.item.type);
+
+    // Corpse: flat dark mark left where an enemy died.
+    if (s.corpse) drawCorpse(ctx, far, shade, s.corpse.type);
 
     // Enemy sprite: drawn centred in the far portal, on top of the back wall.
-    if (s.enemy) drawEnemy(ctx, far, shade, s.enemy.type);
+    if (s.enemy)  drawEnemy (ctx, far, shade, s.enemy.type);
 
     // Left wall: either a flat extension of the back wall, or a perspective trapezoid.
     if (s.left) {

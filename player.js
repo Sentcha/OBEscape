@@ -51,7 +51,7 @@ function tryMove(map, dx, dy, enemies) {
 // Out-of-bounds cells are treated as walls so the renderer always has
 // something to draw at the map's edges.
 //
-function buildScene(map, maxDepth, enemies, items) {
+function buildScene(map, maxDepth, enemies, items, corpses) {
   const fwd = DIR[player.facing];
   const rgt = { dx: -fwd.dy, dy:  fwd.dx }; // 90° clockwise from forward
   const lft = { dx:  fwd.dy, dy: -fwd.dx }; // 90° counter-clockwise
@@ -89,6 +89,7 @@ function buildScene(map, maxDepth, enemies, items) {
     const stairs    = farTile === TILE.STAIRS;
     const enemy     = enemies.find(e => e.x === fx && e.y === fy) ?? null;
     const item      = items.find(it => it.x === fx && it.y === fy) ?? null;
+    const corpse    = corpses.find(c => c.x === fx && c.y === fy) ?? null;
     const nearLeft  = isWall(nx + lft.dx, ny + lft.dy);
     const nearRight = isWall(nx + rgt.dx, ny + rgt.dy);
     const farLeft   = isWall(fx + lft.dx, fy + lft.dy);
@@ -107,6 +108,7 @@ function buildScene(map, maxDepth, enemies, items) {
       stairs,
       enemy,
       item,
+      corpse,
       left:  nearLeft  || leftFlat,
       right: nearRight || rightFlat,
       leftFlat,

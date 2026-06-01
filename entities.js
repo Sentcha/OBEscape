@@ -101,6 +101,18 @@ function drawEnemy(ctx, far, shade, type) {
   }
 }
 
+// A flat dark oval on the floor marking where an enemy died.
+function drawCorpse(ctx, far, shade, type) {
+  const cx = (far.l + far.r) / 2;
+  const by = far.b;
+  const pw = far.r - far.l;
+  const ph = far.b - far.t;
+  ctx.beginPath();
+  ctx.ellipse(cx, by - ph * 0.05, pw * 0.30, ph * 0.05, 0, 0, Math.PI * 2);
+  ctx.fillStyle = shadeColor('#4a1a0a', shade);
+  ctx.fill();
+}
+
 // ---------------------------------------------------------------------------
 // Sprite helpers
 // ---------------------------------------------------------------------------
