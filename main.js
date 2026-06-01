@@ -137,17 +137,28 @@ window.addEventListener('load', () => {
   // ------------------------------------------------------------------
   function drawCompass(ctx, facing) {
     const { originX, originY, mapPx } = minimapGeom();
-    const GAP  = 10;
-    const R    = Math.round(mapPx / 2);
-    const cx   = originX + mapPx + GAP + R;
-    const cy   = originY + mapPx / 2;
-    const gold = '#f5d485';
+    const GAP = 10;
+    const R   = Math.round(mapPx / 2);
+    const cx  = originX + mapPx + GAP + R;
+    const cy  = originY + mapPx / 2;
 
+    // Parchment face
     ctx.beginPath();
     ctx.arc(cx, cy, R, 0, Math.PI * 2);
-    ctx.fillStyle = 'rgba(0,0,0,0.65)';
+    ctx.fillStyle = '#d4bf90';
     ctx.fill();
-    ctx.strokeStyle = '#6b4a1a';
+
+    // Outer bezel
+    ctx.beginPath();
+    ctx.arc(cx, cy, R, 0, Math.PI * 2);
+    ctx.strokeStyle = '#7a5010';
+    ctx.lineWidth = Math.max(2, Math.round(R * 0.055));
+    ctx.stroke();
+
+    // Inner bezel ring
+    ctx.beginPath();
+    ctx.arc(cx, cy, Math.round(R * 0.90), 0, Math.PI * 2);
+    ctx.strokeStyle = '#b89040';
     ctx.lineWidth = 1;
     ctx.stroke();
 
@@ -155,19 +166,52 @@ window.addEventListener('load', () => {
     ctx.translate(cx, cy);
     ctx.rotate(-facing * Math.PI / 2);
 
-    const labels    = ['N', 'E', 'S', 'W'];
+    // 8-point engraved star (4 cardinal + 4 intercardinal petals)
+    for (let i = 0; i < 8; i++) {
+      const isCard = i % 2 === 0;
+      const outerR = isCard ? R * 0.60 : R * 0.38;
+      const sideW  = isCard ? R * 0.09 : R * 0.06;
+      const baseR  = R * 0.12;
+      ctx.save();
+      ctx.rotate(i * Math.PI / 4);
+      ctx.beginPath();
+      ctx.moveTo(0, -outerR);
+      ctx.lineTo(sideW, -baseR);
+      ctx.lineTo(0, R * 0.02);
+      ctx.lineTo(-sideW, -baseR);
+      ctx.closePath();
+      ctx.strokeStyle = (i === 0) ? '#7a1808' : '#4a3418';
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
+      ctx.restore();
+    }
+
+    // Center hub
+    ctx.beginPath();
+    ctx.arc(0, 0, Math.max(2, Math.round(R * 0.05)), 0, Math.PI * 2);
+    ctx.fillStyle = '#7a5010';
+    ctx.fill();
+
+    // Cardinal labels N/E/S/W
     const fontSize  = Math.round(R / 3);
-    const labelDist = R - Math.round(R * 0.3);
+    const labelDist = R * 0.77;
     ctx.font = `bold ${fontSize}px Georgia, serif`;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    for (let i = 0; i < 4; i++) {
-      const a  = i * Math.PI / 2 - Math.PI / 2;
-      const tx = Math.cos(a) * labelDist;
-      const ty = Math.sin(a) * labelDist;
-      ctx.fillStyle = labels[i] === 'N' ? '#e03030' : gold;
-      ctx.fillText(labels[i], tx, ty);
-    }
+    ['N', 'E', 'S', 'W'].forEach((lbl, i) => {
+      const a = i * Math.PI / 2 - Math.PI / 2;
+      ctx.fillStyle = (i === 0) ? '#8b1808' : '#3a2808';
+      ctx.fillText(lbl, Math.cos(a) * labelDist, Math.sin(a) * labelDist);
+    });
+
+    // Intercardinal labels NE/SE/SW/NW
+    const interSize = Math.round(fontSize * 0.60);
+    ctx.font = `bold ${interSize}px Georgia, serif`;
+    ctx.fillStyle = '#3a2808';
+    ['NE', 'SE', 'SW', 'NW'].forEach((lbl, i) => {
+      const a = i * Math.PI / 2 - Math.PI / 4;
+      ctx.fillText(lbl, Math.cos(a) * labelDist * 0.72, Math.sin(a) * labelDist * 0.72);
+    });
 
     ctx.restore();
     ctx.textAlign = 'left';
