@@ -9,6 +9,7 @@
 - [ ] Update compass sprite
 - [x] Implement cache busting
 - [ ] Scrollable event log
+- [ ] Fix corpse rendering, possibly with sprites
 - [x] Fix hieroglyphics rendering
 
 ## Advanced Features
