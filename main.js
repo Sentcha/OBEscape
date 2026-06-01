@@ -87,14 +87,19 @@ window.addEventListener('load', () => {
   }
 
   // ------------------------------------------------------------------
+  // Shared minimap geometry — keeps drawMinimap, drawCompass, and drawEventLog in sync.
+  function minimapGeom() {
+    const dim   = Math.max(map.length, map[0].length);
+    const CELL  = Math.floor(160 / dim);
+    const mapPx = dim * CELL;
+    return { originX: 10, originY: VIEW_BOT + 8, CELL, mapPx };
+  }
+
   // Minimap — small top-down grid drawn in the bottom-left corner.
   // ------------------------------------------------------------------
   function drawMinimap() {
-    const cols    = map[0].length;
-    const rows    = map.length;
-    const CELL    = Math.floor(160 / Math.max(rows, cols));
-    const originX = 10;
-    const originY = VIEW_BOT + 8;
+    const { originX, originY, CELL, mapPx } = minimapGeom();
+    const rows = map.length, cols = map[0].length;
 
     ctx.fillStyle = 'rgba(0, 0, 0, 0.65)';
     ctx.fillRect(originX - 2, originY - 2, cols * CELL + 4, rows * CELL + 4);
@@ -131,9 +136,11 @@ window.addEventListener('load', () => {
   // Compass rose — rotates so current facing direction is always at top.
   // ------------------------------------------------------------------
   function drawCompass(ctx, facing) {
-    const cx   = 215;
-    const cy   = VIEW_BOT + 90;
-    const R    = 38;
+    const { originX, originY, mapPx } = minimapGeom();
+    const GAP  = 10;
+    const R    = Math.round(mapPx / 2);
+    const cx   = originX + mapPx + GAP + R;
+    const cy   = originY + mapPx / 2;
     const gold = '#f5d485';
 
     ctx.beginPath();
@@ -148,14 +155,16 @@ window.addEventListener('load', () => {
     ctx.translate(cx, cy);
     ctx.rotate(-facing * Math.PI / 2);
 
-    const labels = ['N', 'E', 'S', 'W'];
-    ctx.font = 'bold 13px Georgia, serif';
+    const labels    = ['N', 'E', 'S', 'W'];
+    const fontSize  = Math.round(R / 3);
+    const labelDist = R - Math.round(R * 0.3);
+    ctx.font = `bold ${fontSize}px Georgia, serif`;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     for (let i = 0; i < 4; i++) {
       const a  = i * Math.PI / 2 - Math.PI / 2;
-      const tx = Math.cos(a) * (R - 12);
-      const ty = Math.sin(a) * (R - 12);
+      const tx = Math.cos(a) * labelDist;
+      const ty = Math.sin(a) * labelDist;
       ctx.fillStyle = labels[i] === 'N' ? '#e03030' : gold;
       ctx.fillText(labels[i], tx, ty);
     }
@@ -166,7 +175,10 @@ window.addEventListener('load', () => {
   }
 
   function drawEventLog() {
-    const x        = 265;
+    const { originX, mapPx } = minimapGeom();
+    const GAP = 10;
+    const R   = Math.round(mapPx / 2);
+    const x   = originX + mapPx + GAP + 2 * R + GAP;
     const startY   = VIEW_BOT + 24;
     const lineH    = 22;
     const maxLines = 4;
