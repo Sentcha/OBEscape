@@ -15,6 +15,8 @@
 ## Advanced Features
 - [ ] Noise mechanics based on speed of user input
 - [ ] Sound effects
+- [ ] Ranged combat for weapons like revolver and alien rod
+- [ ] Enemy status effects on attack (e.g. snake venom, mummy slow)
 
 ## Milestones
 - [x] M1: Static corridor view renders on canvas
