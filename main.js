@@ -608,8 +608,9 @@ window.addEventListener('load', async () => {
       if (e.key === 'Escape') { gameState = 'menu'; draw(); }
       return;
     }
-    const { acted, bumpedEnemy } = handleKey(e, map, enemies);
-    if (acted) resolvePlayerAction(bumpedEnemy);
+    const { acted, moved, bumpedEnemy } = handleKey(e, map, enemies);
+    if (acted && moved)  resolvePlayerAction(bumpedEnemy);
+    else if (acted)      draw();
   });
 
   // Roll a player attack. Returns { hit, crit, damage }.
@@ -691,8 +692,9 @@ window.addEventListener('load', async () => {
     }
     const key = getDpadKey(x, y) ?? getViewTapKey(x, y);
     if (key) {
-      const { acted, bumpedEnemy } = handleKey({ key }, map, enemies);
-      if (acted) resolvePlayerAction(bumpedEnemy);
+      const { acted, moved, bumpedEnemy } = handleKey({ key }, map, enemies);
+      if (acted && moved)  resolvePlayerAction(bumpedEnemy);
+      else if (acted)      draw();
     }
   }
 

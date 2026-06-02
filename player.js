@@ -125,8 +125,9 @@ function buildScene(map, maxDepth, enemies, items, corpses) {
 }
 
 // Process a keydown event and update the player state.
-// Returns { acted: bool, bumpedEnemy: enemy|null }.
+// Returns { acted: bool, moved: bool, bumpedEnemy: enemy|null }.
 // acted — true if the player used their turn (caller should redraw and advance game state).
+// moved — true for forward/backward moves; false for left/right rotations (enemies don't act).
 // bumpedEnemy — the enemy the player walked into forwards, if any; null otherwise.
 function handleKey(e, map, enemies) {
   const d = DIR[player.facing];
@@ -136,19 +137,19 @@ function handleKey(e, map, enemies) {
       if (result === 'enemy') {
         const nx = player.x + d.dx;
         const ny = player.y + d.dy;
-        return { acted: true, bumpedEnemy: enemies.find(en => en.x === nx && en.y === ny) };
+        return { acted: true, moved: true, bumpedEnemy: enemies.find(en => en.x === nx && en.y === ny) };
       }
-      return { acted: true, bumpedEnemy: null };
+      return { acted: true, moved: true, bumpedEnemy: null };
     }
     case 'ArrowDown':  case 's': case 'S':
       tryMove(map, -d.dx, -d.dy, enemies);
-      return { acted: true, bumpedEnemy: null };
+      return { acted: true, moved: true, bumpedEnemy: null };
     case 'ArrowLeft':  case 'a': case 'A':
       player.facing = (player.facing + 3) % 4;
-      return { acted: true, bumpedEnemy: null };
+      return { acted: true, moved: false, bumpedEnemy: null };
     case 'ArrowRight': case 'd': case 'D':
       player.facing = (player.facing + 1) % 4;
-      return { acted: true, bumpedEnemy: null };
+      return { acted: true, moved: false, bumpedEnemy: null };
   }
-  return { acted: false, bumpedEnemy: null };
+  return { acted: false, moved: false, bumpedEnemy: null };
 }
