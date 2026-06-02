@@ -145,7 +145,7 @@ window.addEventListener('load', () => {
     // Parchment face
     ctx.beginPath();
     ctx.arc(cx, cy, R, 0, Math.PI * 2);
-    ctx.fillStyle = '#d4bf90';
+    ctx.fillStyle = '#b09060';
     ctx.fill();
 
     // Outer bezel
