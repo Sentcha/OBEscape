@@ -85,9 +85,11 @@ function preloadItemSprites(version) {
 function drawItem(ctx, far, shade, type) {
   const img = itemSpriteMap[type];
   if (!img) return;
-  const pw = far.r - far.l, ph = far.b - far.t;
+  const cx   = (far.l + far.r) / 2;
+  const ph   = far.b - far.t;
+  const size = ph * 0.40;
   ctx.globalAlpha = shade;
-  ctx.drawImage(img, far.l, far.t, pw, ph);
+  ctx.drawImage(img, Math.round(cx - size / 2), Math.round(far.b - size), Math.round(size), Math.round(size));
   ctx.globalAlpha = 1.0;
 }
 
