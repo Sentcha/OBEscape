@@ -88,9 +88,9 @@ function drawItem(ctx, far, shade, type) {
   const cx   = (far.l + far.r) / 2;
   const ph   = far.b - far.t;
   const size = ph * 0.40;
-  ctx.globalAlpha = shade;
+  ctx.filter = `brightness(${shade})`;
   ctx.drawImage(img, Math.round(cx - size / 2), Math.round(far.b - size), Math.round(size), Math.round(size));
-  ctx.globalAlpha = 1.0;
+  ctx.filter = 'none';
 }
 
 // ---------------------------------------------------------------------------
