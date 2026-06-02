@@ -2,5 +2,5 @@
 const VERSION = {
   branch: 'main',
   commit: '21a684d',
-  date:   '2026-06-02',
+  date:   '2026-06-03',
 };
