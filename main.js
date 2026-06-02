@@ -1,7 +1,7 @@
 // Entry point and game coordinator.
 // Milestone 10: Main menu, game over screen, win screen.
 
-window.addEventListener('load', () => {
+window.addEventListener('load', async () => {
   const canvas = document.getElementById('gameCanvas');
   const ctx = canvas.getContext('2d');
 
@@ -699,5 +699,6 @@ window.addEventListener('load', () => {
   canvas.addEventListener('touchstart', handlePointer, { passive: false });
   canvas.addEventListener('mousedown',  handlePointer);
 
+  await preloadItemSprites(VERSION.commit);
   draw();
 });

@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html>
+<head><meta charset="UTF-8"></head>
+<body>
+<canvas id="c" width="128" height="128"></canvas>
+<!-- renderer.js must come first — provides fillPoly / shadeColor -->
+<script src="/renderer.js"></script>
+<script src="/items.js"></script>
+<script>
+  // Stub out anything items.js references that isn't in renderer.js
+  const TILE = {};
+  window.__ready = true;
+</script>
+</body>
+</html>
