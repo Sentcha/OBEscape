@@ -100,36 +100,90 @@ window.addEventListener('load', () => {
   function drawMinimap() {
     const { originX, originY, CELL, mapPx } = minimapGeom();
     const rows = map.length, cols = map[0].length;
+    const w = cols * CELL, h = rows * CELL;
 
-    ctx.fillStyle = 'rgba(0, 0, 0, 0.65)';
-    ctx.fillRect(originX - 2, originY - 2, cols * CELL + 4, rows * CELL + 4);
+    // Parchment background with cheap aged vignette
+    const cx = originX + w / 2, cy = originY + h / 2;
+    const grad = ctx.createRadialGradient(cx, cy, Math.min(w, h) * 0.15,
+                                          cx, cy, Math.max(w, h) * 0.65);
+    grad.addColorStop(0, '#b09060');
+    grad.addColorStop(1, '#8a6a3c');
+    ctx.fillStyle = grad;
+    ctx.fillRect(originX - 2, originY - 2, w + 4, h + 4);
 
+    // Tiles: ink walls + fogged unvisited; floor leaves parchment showing
     for (let row = 0; row < rows; row++) {
       for (let col = 0; col < cols; col++) {
+        const px = originX + col * CELL, py = originY + row * CELL;
         if (!visited[row][col]) {
-          ctx.fillStyle = '#000';
-        } else {
-          const tile = map[row][col];
-          if      (tile === TILE.WALL)   ctx.fillStyle = '#1a1a1a';
-          else if (tile === TILE.STAIRS) ctx.fillStyle = '#4fc3f7';
-          else                           ctx.fillStyle = '#3d3225';
+          ctx.fillStyle = '#6b5230';                 // un-inked / fog
+          ctx.fillRect(px, py, CELL - 1, CELL - 1);
+        } else if (map[row][col] === TILE.WALL) {
+          ctx.fillStyle = '#3a2808';                 // dark ink wall
+          ctx.fillRect(px, py, CELL - 1, CELL - 1);
         }
-        ctx.fillRect(originX + col * CELL, originY + row * CELL, CELL - 1, CELL - 1);
+        // floor/corridor/stairs base: parchment shows through (no fill)
       }
     }
 
-    ctx.fillStyle = '#ffe066';
+    // Faint engraved grid over the chart
+    ctx.strokeStyle = 'rgba(58, 40, 8, 0.10)';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    for (let c = 0; c <= cols; c++) {
+      const x = Math.round(originX + c * CELL) + 0.5;
+      ctx.moveTo(x, originY); ctx.lineTo(x, originY + h);
+    }
+    for (let r = 0; r <= rows; r++) {
+      const y = Math.round(originY + r * CELL) + 0.5;
+      ctx.moveTo(originX, y); ctx.lineTo(originX + w, y);
+    }
+    ctx.stroke();
+
+    // Stairs: solid verdigris square with ink outline
+    for (let row = 0; row < rows; row++)
+      for (let col = 0; col < cols; col++)
+        if (visited[row][col] && map[row][col] === TILE.STAIRS) {
+          const px = originX + col * CELL, py = originY + row * CELL;
+          ctx.fillStyle = '#3f6b54';
+          ctx.fillRect(px, py, CELL - 1, CELL - 1);
+          if (CELL >= 6) {
+            ctx.strokeStyle = '#3a2808';
+            ctx.lineWidth = 1;
+            ctx.strokeRect(px + 0.5, py + 0.5, CELL - 2, CELL - 2);
+          }
+        }
+
+    // Items: gold
+    ctx.fillStyle = '#b89040';
     for (const it of items)
       if (visited[it.y][it.x])
         ctx.fillRect(originX + it.x * CELL, originY + it.y * CELL, CELL - 1, CELL - 1);
 
-    ctx.fillStyle = '#e03030';
+    // Enemies: dark red
+    ctx.fillStyle = '#7a1808';
     for (const en of enemies)
       if (debug.showEnemies || visited[en.y][en.x])
         ctx.fillRect(originX + en.x * CELL, originY + en.y * CELL, CELL - 1, CELL - 1);
 
-    ctx.fillStyle = '#f5d485';
-    ctx.fillRect(originX + player.x * CELL, originY + player.y * CELL, CELL - 1, CELL - 1);
+    // Player: light-gold marker with dark ink outline
+    {
+      const px = originX + player.x * CELL, py = originY + player.y * CELL;
+      ctx.fillStyle = '#f5d485';
+      ctx.fillRect(px, py, CELL - 1, CELL - 1);
+      ctx.strokeStyle = '#3a2808';
+      ctx.lineWidth = 1;
+      ctx.strokeRect(px + 0.5, py + 0.5, CELL - 2, CELL - 2);
+    }
+
+    // Ornamental double frame (echoes compass bezel), drawn last.
+    // Sits in the existing -2 margin: footprint & compass placement unchanged.
+    ctx.strokeStyle = '#7a5010';      // outer thick brass
+    ctx.lineWidth = 2;
+    ctx.strokeRect(originX - 1.5, originY - 1.5, w + 3, h + 3);
+    ctx.strokeStyle = '#b89040';      // inner thin gold
+    ctx.lineWidth = 1;
+    ctx.strokeRect(originX + 0.5, originY + 0.5, w - 1, h - 1);
   }
 
   // ------------------------------------------------------------------
