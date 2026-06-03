@@ -1,10 +1,10 @@
 const debug = { enabled: false, noclip: false, godMode: false, showDpad: false, showEnemies: false };
 
 // Layout constants — shared by drawDebugPanel and getDebugHit so geometry stays in sync.
-const DBG_BTN   = { x: 744, y: 8, w: 48, h: 24 };
-const DBG_PANEL = { x: 494, w: 300 };
-const DBG_ROW_H = 26;
-const DBG_PAD   = { x: 10, y: 8 };
+const DBG_BTN   = { x: 730, y: 8, w: 62, h: 32 };
+const DBG_PANEL = { x: 430, w: 362 };
+const DBG_ROW_H = 40;
+const DBG_PAD   = { x: 12, y: 10 };
 
 const DBG_CMDS = ['n', 'g', 'd', 'e', 't', 'x', 'l', 'r'];
 const DBG_LABELS = [
@@ -22,9 +22,9 @@ function drawDebugPanel(ctx, map) {
   // Toggle button — always visible in top-right corner.
   ctx.fillStyle = debug.enabled ? '#f5d485' : 'rgba(245,212,133,0.35)';
   ctx.fillRect(DBG_BTN.x, DBG_BTN.y, DBG_BTN.w, DBG_BTN.h);
-  ctx.font = 'bold 13px monospace';
+  ctx.font = 'bold 16px monospace';
   ctx.fillStyle = debug.enabled ? '#000' : '#f5d485';
-  ctx.fillText('DBG', DBG_BTN.x + 8, DBG_BTN.y + 17);
+  ctx.fillText('DBG', DBG_BTN.x + 10, DBG_BTN.y + 22);
 
   if (!debug.enabled) return;
 
@@ -51,10 +51,10 @@ function drawDebugPanel(ctx, map) {
   ctx.lineWidth = 1;
   ctx.strokeRect(px, panelY, w, totalH);
 
-  ctx.font = 'bold 13px monospace';
+  ctx.font = 'bold 16px monospace';
   rows.forEach((row, i) => {
     ctx.fillStyle = i <= 1 ? '#f5d485' : '#c0c0c0';
-    ctx.fillText(row, px + DBG_PAD.x, panelY + DBG_PAD.y + (i + 1) * DBG_ROW_H - 6);
+    ctx.fillText(row, px + DBG_PAD.x, panelY + DBG_PAD.y + (i + 1) * DBG_ROW_H - 10);
   });
 }
 
