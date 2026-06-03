@@ -3,6 +3,7 @@
 ## Known Issues
 - [x] Fix render bug when staring at wall that has a corridor parallel to direction of view on left or right side
 - [ ] Fix how stairs are drawn
+- [ ] Fix rendering of stone block walls on levels 1–2
 - [ ] Support side visibility for monsters
 - [ ] Redesign enemy sprites
 - [x] Update sprites for loot — PNG sprite system (128×128, antique style)
