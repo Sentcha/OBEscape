@@ -1,3 +1,5 @@
+const ENEMY_SIGHT_RANGE = 10; // maximum Manhattan distance at which an enemy can spot the player
+
 const ENEMY_TYPE = {
   SCARAB:       'scarab',
   SNAKE:        'snake',
@@ -51,7 +53,8 @@ function loadEnemies(map, dungeonLevel) {
         enemies.push({ x, y, type, name: stats.name, facing,
                        hp: stats.hp, maxHp: stats.maxHp,
                        attack: stats.attack, defense: stats.defense,
-                       movePeriod: stats.movePeriod, moveTimer: 0 });
+                       movePeriod: stats.movePeriod, moveTimer: 0,
+                       alerted: false });
         map[y][x] = TILE.FLOOR;
       }
   return enemies;
@@ -73,10 +76,11 @@ function clearHorizontal(map, y, x1, x2) {
   return true;
 }
 
-// After each player action, any enemy with a clear straight-line view of the player
-// rotates to face them. Purely cosmetic — selects the sprite frame; no combat effect.
+// After each player action, any alerted enemy with a clear cardinal sightline
+// rotates to face the player. Dormant (non-alerted) enemies don't visually track.
 function updateEnemyFacing(map, enemies) {
   for (const e of enemies) {
+    if (!e.alerted) continue;
     if (e.x === player.x) {
       if (clearVertical(map, e.x, e.y, player.y))
         e.facing = player.y > e.y ? 2 : 0;
@@ -87,11 +91,23 @@ function updateEnemyFacing(map, enemies) {
   }
 }
 
-// True when the enemy shares a row or column with the player and has a clear sightline.
-function isAlerted(map, e) {
-  if (e.x === player.x) return clearVertical(map, e.x, e.y, player.y);
-  if (e.y === player.y) return clearHorizontal(map, e.y, e.x, player.x);
-  return false;
+// True when the enemy at (ex, ey) has an unobstructed line of sight to the player.
+// Uses Bresenham's line to step tile-by-tile; returns false on the first TILE.WALL
+// or when the Manhattan distance exceeds ENEMY_SIGHT_RANGE.
+function hasLineOfSight(map, ex, ey) {
+  const px = player.x, py = player.y;
+  if (Math.abs(px - ex) + Math.abs(py - ey) > ENEMY_SIGHT_RANGE) return false;
+  const adx = Math.abs(px - ex), ady = Math.abs(py - ey);
+  const sx = ex < px ? 1 : -1, sy = ey < py ? 1 : -1;
+  let err = adx - ady, x = ex, y = ey;
+  while (x !== px || y !== py) {
+    const e2 = 2 * err;
+    if (e2 > -ady) { err -= ady; x += sx; }
+    if (e2 <  adx) { err += adx; y += sy; }
+    if (x === px && y === py) break;
+    if ((map[y]?.[x] ?? TILE.WALL) === TILE.WALL) return false;
+  }
+  return true;
 }
 
 // Move the enemy one step toward the player using a greedy approach:

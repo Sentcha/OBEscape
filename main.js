@@ -649,13 +649,24 @@ window.addEventListener('load', async () => {
     // Enemy turn — each enemy either attacks (if adjacent) or moves toward the player (if alerted).
     if (!debug.godMode) {
       const totalDefense = player.defense + (player.equippedArmor?.defense ?? 0);
+
+      // Grant awareness to any enemy that now has line of sight to the player.
+      // Alert state is permanent — once spotted, enemies chase around corners.
+      for (const e of enemies) {
+        if (!e.alerted) {
+          const dist = Math.abs(e.x - player.x) + Math.abs(e.y - player.y);
+          if (dist <= 1 || hasLineOfSight(map, e.x, e.y)) e.alerted = true;
+        }
+      }
+
       for (const e of enemies) {
         const dist = Math.abs(e.x - player.x) + Math.abs(e.y - player.y);
         if (dist === 1) {
+          e.alerted = true;
           const { hit, damage } = rollEnemyAttack(e.attack, totalDefense);
           if (!hit) logEvent(`The ${e.name} misses you.`, '#808080');
           else { player.hp -= damage; logEvent(`The ${e.name} hits you for ${damage}.`, '#e03030'); }
-        } else if (isAlerted(map, e)) {
+        } else if (e.alerted) {
           e.moveTimer++;
           if (e.moveTimer >= e.movePeriod) {
             e.moveTimer = 0;
