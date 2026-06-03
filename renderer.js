@@ -160,9 +160,9 @@ function drawStoneBlocksBack(ctx, l, t, r, b, shade, palette) {
     ctx.fillRect(l, Math.round(t + h * f) - Math.floor(mw / 2), w, mw);
   }
 
-  // Vertical joints — running bond: even rows at 40%/85%, odd row at 20%/62%
+  // Vertical joints — running bond: even rows centred, odd row at 1/4 and 3/4
   const rows   = [[0, 1/3], [1/3, 2/3], [2/3, 1]];
-  const joints = [[0.40, 0.85], [0.20, 0.62], [0.40, 0.85]];
+  const joints = [[0.50], [0.25, 0.75], [0.50]];
   for (let i = 0; i < rows.length; i++) {
     const yt = Math.round(t + h * rows[i][0]);
     const yb = Math.round(t + h * rows[i][1]);
@@ -174,7 +174,8 @@ function drawStoneBlocksBack(ctx, l, t, r, b, shade, palette) {
 }
 
 // Draw horizontal stone masonry joints on a trapezoidal side wall face.
-function drawStoneBlocksSide(ctx, x0, y0t, y0b, x1, y1t, y1b, shade, palette) {
+// vertX: optional screen-x of the world-depth midpoint; draws a vertical joint there.
+function drawStoneBlocksSide(ctx, x0, y0t, y0b, x1, y1t, y1b, shade, palette, vertX = null) {
   const h0 = y0b - y0t, h1 = y1b - y1t;
   if (h0 < 12 || h1 < 12 || Math.abs(x1 - x0) < 2) return;
   const mc = shadeColor(palette.mortar, shade);
@@ -183,6 +184,16 @@ function drawStoneBlocksSide(ctx, x0, y0t, y0b, x1, y1t, y1b, shade, palette) {
       [x0, y0t + h0 * f - 1], [x1, y1t + h1 * f - 1],
       [x1, y1t + h1 * f + 1], [x0, y0t + h0 * f + 1],
     ], mc);
+  }
+  if (vertX !== null) {
+    const xMin = Math.min(x0, x1), xMax = Math.max(x0, x1);
+    if (vertX > xMin && vertX < xMax) {
+      const t  = (vertX - x0) / (x1 - x0);
+      const jt = y0t + t * (y1t - y0t);
+      const jb = y0b + t * (y1b - y0b);
+      ctx.fillStyle = mc;
+      ctx.fillRect(Math.round(vertX) - 1, Math.round(jt), 2, Math.round(jb - jt));
+    }
   }
 }
 
@@ -193,8 +204,8 @@ function drawWallSurfaceRect(ctx, l, t, r, b, shade, palette) {
   drawWallBandsRect(ctx, l, t, r, b, shade, palette);
 }
 
-function drawWallSurfaceTrap(ctx, x0, y0t, y0b, x1, y1t, y1b, shade, palette) {
-  if (palette.stoneBlocks) drawStoneBlocksSide(ctx, x0, y0t, y0b, x1, y1t, y1b, shade, palette);
+function drawWallSurfaceTrap(ctx, x0, y0t, y0b, x1, y1t, y1b, shade, palette, vertX = null) {
+  if (palette.stoneBlocks) drawStoneBlocksSide(ctx, x0, y0t, y0b, x1, y1t, y1b, shade, palette, vertX);
   drawWallBandsTrap(ctx, x0, y0t, y0b, x1, y1t, y1b, shade, palette);
 }
 
@@ -312,7 +323,7 @@ function renderView(ctx, scene) {
           ctx.moveTo(wx_near, near.t); ctx.lineTo(wx_far, far.t);
           ctx.lineTo(wx_far, far.b);   ctx.lineTo(wx_near, near.b);
           ctx.closePath(); ctx.clip();
-          drawWallSurfaceTrap(ctx, wx_near, near.t, near.b, wx_far, far.t, far.b, shade, palette);
+          drawWallSurfaceTrap(ctx, wx_near, near.t, near.b, wx_far, far.t, far.b, shade, palette, CX - 840 / (d - 0.5));
           maybeDrawGlyph(ctx, CX - 840 / (d - 0.5), CY, 120 / (d - 0.5), shade, fx + lft.dx, fy + lft.dy, absFaceBack, palette.glyphColor);
           ctx.restore();
         } else {
@@ -324,7 +335,7 @@ function renderView(ctx, scene) {
           ctx.beginPath();
           ctx.rect(near.l, far.t, far.l - near.l, far.b - far.t);
           ctx.clip();
-          maybeDrawGlyph(ctx, CX - 420 / d, (far.t + far.b) / 2, 120 / d, shade, fx + lft.dx, fy + lft.dy, absFaceBack, palette.glyphColor);
+          maybeDrawGlyph(ctx, (near.l + far.l) / 2, (far.t + far.b) / 2, 120 / d, shade, fx + lft.dx, fy + lft.dy, absFaceBack, palette.glyphColor);
           ctx.restore();
         }
       } else {
@@ -339,11 +350,11 @@ function renderView(ctx, scene) {
         ctx.moveTo(near.l, near.t); ctx.lineTo(far.l, far.t);
         ctx.lineTo(far.l, far.b);   ctx.lineTo(near.l, near.b);
         ctx.closePath(); ctx.clip();
-        drawWallSurfaceTrap(ctx, near.l, near.t, near.b, far.l, far.t, far.b, shade, palette);
         const gcxL = CX - 280 / (d - 0.5);
+        drawWallSurfaceTrap(ctx, near.l, near.t, near.b, far.l, far.t, far.b, shade, palette, gcxL);
         const RL   = (far.l - near.l) * (d - 0.5) / 560;
         ctx.transform(RL, 0, 0, 1, gcxL * (1 - RL), 0);
-        maybeDrawGlyph(ctx, gcxL, CY, 120 / (d - 0.5), shade, nx + lft.dx, ny + lft.dy, absFaceLeft, palette.glyphColor);
+        if (d > 1) maybeDrawGlyph(ctx, gcxL, CY, 120 / (d - 0.5), shade, nx + lft.dx, ny + lft.dy, absFaceLeft, palette.glyphColor);
         ctx.restore();
       }
     } else {
@@ -361,7 +372,7 @@ function renderView(ctx, scene) {
       ctx.moveTo(wx_near, near.t); ctx.lineTo(wx_far, far.t);
       ctx.lineTo(wx_far, far.b);   ctx.lineTo(wx_near, near.b);
       ctx.closePath(); ctx.clip();
-      drawWallSurfaceTrap(ctx, wx_near, near.t, near.b, wx_far, far.t, far.b, shade, palette);
+      drawWallSurfaceTrap(ctx, wx_near, near.t, near.b, wx_far, far.t, far.b, shade, palette, CX - 840 / (d - 0.5));
       maybeDrawGlyph(ctx, CX - 840 / (d - 0.5), CY, 120 / (d - 0.5), shade, fx + lft.dx, fy + lft.dy, absFaceBack, palette.glyphColor);
       ctx.restore();
     }
@@ -383,7 +394,7 @@ function renderView(ctx, scene) {
           ctx.moveTo(wx_far, far.t);   ctx.lineTo(wx_near, near.t);
           ctx.lineTo(wx_near, near.b); ctx.lineTo(wx_far, far.b);
           ctx.closePath(); ctx.clip();
-          drawWallSurfaceTrap(ctx, wx_far, far.t, far.b, wx_near, near.t, near.b, shade, palette);
+          drawWallSurfaceTrap(ctx, wx_far, far.t, far.b, wx_near, near.t, near.b, shade, palette, CX + 840 / (d - 0.5));
           maybeDrawGlyph(ctx, CX + 840 / (d - 0.5), CY, 120 / (d - 0.5), shade, fx + rgt.dx, fy + rgt.dy, absFaceBack, palette.glyphColor);
           ctx.restore();
         } else {
@@ -395,7 +406,7 @@ function renderView(ctx, scene) {
           ctx.beginPath();
           ctx.rect(far.r, far.t, near.r - far.r, far.b - far.t);
           ctx.clip();
-          maybeDrawGlyph(ctx, CX + 420 / d, (far.t + far.b) / 2, 120 / d, shade, fx + rgt.dx, fy + rgt.dy, absFaceBack, palette.glyphColor);
+          maybeDrawGlyph(ctx, (near.r + far.r) / 2, (far.t + far.b) / 2, 120 / d, shade, fx + rgt.dx, fy + rgt.dy, absFaceBack, palette.glyphColor);
           ctx.restore();
         }
       } else {
@@ -410,11 +421,11 @@ function renderView(ctx, scene) {
         ctx.moveTo(far.r, far.t);   ctx.lineTo(near.r, near.t);
         ctx.lineTo(near.r, near.b); ctx.lineTo(far.r, far.b);
         ctx.closePath(); ctx.clip();
-        drawWallSurfaceTrap(ctx, far.r, far.t, far.b, near.r, near.t, near.b, shade, palette);
         const gcxR = CX + 280 / (d - 0.5);
+        drawWallSurfaceTrap(ctx, far.r, far.t, far.b, near.r, near.t, near.b, shade, palette, gcxR);
         const RR   = (near.r - far.r) * (d - 0.5) / 560;
         ctx.transform(RR, 0, 0, 1, gcxR * (1 - RR), 0);
-        maybeDrawGlyph(ctx, gcxR, CY, 120 / (d - 0.5), shade, nx + rgt.dx, ny + rgt.dy, absFaceRight, palette.glyphColor);
+        if (d > 1) maybeDrawGlyph(ctx, gcxR, CY, 120 / (d - 0.5), shade, nx + rgt.dx, ny + rgt.dy, absFaceRight, palette.glyphColor);
         ctx.restore();
       }
     } else {
@@ -431,7 +442,7 @@ function renderView(ctx, scene) {
       ctx.moveTo(wx_far, far.t);   ctx.lineTo(wx_near, near.t);
       ctx.lineTo(wx_near, near.b); ctx.lineTo(wx_far, far.b);
       ctx.closePath(); ctx.clip();
-      drawWallSurfaceTrap(ctx, wx_far, far.t, far.b, wx_near, near.t, near.b, shade, palette);
+      drawWallSurfaceTrap(ctx, wx_far, far.t, far.b, wx_near, near.t, near.b, shade, palette, CX + 840 / (d - 0.5));
       maybeDrawGlyph(ctx, CX + 840 / (d - 0.5), CY, 120 / (d - 0.5), shade, fx + rgt.dx, fy + rgt.dy, absFaceBack, palette.glyphColor);
       ctx.restore();
     }
