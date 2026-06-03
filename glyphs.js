@@ -155,20 +155,90 @@ function drawSunDisc(ctx, cx, cy, s) {
   }
 }
 
-const GLYPHS = [drawAnkh, drawEye, drawScarab, drawDjed, drawWas, drawCartouche, drawFeather, drawSunDisc];
+// ---------------------------------------------------------------------------
+// Alien geometric glyphs — angular, no natural curves; appear on deep levels.
+// ---------------------------------------------------------------------------
 
-const DECO_DENSITY = 0.10;
+function drawAlienRune(ctx, cx, cy, s) {
+  // Outer triangle
+  ctx.beginPath();
+  ctx.moveTo(cx, cy - s * 0.52);
+  ctx.lineTo(cx + s * 0.50, cy + s * 0.36);
+  ctx.lineTo(cx - s * 0.50, cy + s * 0.36);
+  ctx.closePath();
+  ctx.stroke();
+  // Inner inverted triangle
+  ctx.beginPath();
+  ctx.moveTo(cx, cy + s * 0.20);
+  ctx.lineTo(cx + s * 0.22, cy - s * 0.10);
+  ctx.lineTo(cx - s * 0.22, cy - s * 0.10);
+  ctx.closePath();
+  ctx.stroke();
+}
+
+function drawAlienGrid(ctx, cx, cy, s) {
+  const sp = s * 0.30, r = s * 0.06;
+  for (let row = -1; row <= 1; row++)
+    for (let col = -1; col <= 1; col++) {
+      ctx.beginPath();
+      ctx.arc(cx + col * sp, cy + row * sp, r, 0, Math.PI * 2);
+      ctx.stroke();
+    }
+}
+
+function drawAlienFork(ctx, cx, cy, s) {
+  const by = cy - s * 0.10;
+  ctx.beginPath();
+  ctx.moveTo(cx, cy + s * 0.50); ctx.lineTo(cx, by);
+  ctx.moveTo(cx, by); ctx.lineTo(cx - s * 0.38, cy - s * 0.50);
+  ctx.moveTo(cx, by); ctx.lineTo(cx, cy - s * 0.50);
+  ctx.moveTo(cx, by); ctx.lineTo(cx + s * 0.38, cy - s * 0.50);
+  ctx.moveTo(cx - s * 0.15, cy + s * 0.50); ctx.lineTo(cx + s * 0.15, cy + s * 0.50);
+  ctx.stroke();
+}
+
+function drawAlienRing(ctx, cx, cy, s) {
+  ctx.beginPath();
+  ctx.arc(cx, cy, s * 0.38, 0, Math.PI * 2);
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.arc(cx, cy, s * 0.18, 0, Math.PI * 2);
+  ctx.stroke();
+  for (let i = 0; i < 4; i++) {
+    const a = (i / 4) * Math.PI * 2;
+    ctx.beginPath();
+    ctx.moveTo(cx + Math.cos(a) * s * 0.41, cy + Math.sin(a) * s * 0.41);
+    ctx.lineTo(cx + Math.cos(a) * s * 0.54, cy + Math.sin(a) * s * 0.54);
+    ctx.stroke();
+  }
+}
+
+// ---------------------------------------------------------------------------
+
+const GLYPHS_EGYPTIAN = [drawAnkh, drawEye, drawScarab, drawDjed, drawWas, drawCartouche, drawFeather, drawSunDisc];
+const GLYPHS_ALIEN    = [drawAlienRune, drawAlienGrid, drawAlienFork, drawAlienRing];
+const GLYPHS_MIXED    = [drawAnkh, drawScarab, drawDjed, drawSunDisc, drawAlienRune, drawAlienGrid, drawAlienFork, drawAlienRing];
+
+function getGlyphPool(level) {
+  if (level <= 2) return GLYPHS_EGYPTIAN;
+  if (level <= 4) return GLYPHS_MIXED;
+  return GLYPHS_ALIEN;
+}
+
+const DECO_DENSITY = 0.25;
 
 // Draw a glyph on a wall face centred at (cx, cy) with the given available size and shade.
 // mapX/mapY/side uniquely identify the wall face; the hash determines whether to draw and which glyph.
-function maybeDrawGlyph(ctx, cx, cy, size, shade, mapX, mapY, side) {
+// glyphColor defaults to gold (#f5d485) but varies by level palette.
+function maybeDrawGlyph(ctx, cx, cy, size, shade, mapX, mapY, side, glyphColor = '#f5d485') {
   if (hash31(mapX, mapY, side) >= DECO_DENSITY) return;
   const s = size;
   if (s < 5) return;
-  const fn = GLYPHS[Math.floor(hash31(mapX + 97, mapY + 31, side) * GLYPHS.length)];
+  const pool = getGlyphPool(player.dungeonLevel);
+  const fn = pool[Math.floor(hash31(mapX + 97, mapY + 31, side) * pool.length)];
   ctx.save();
   ctx.globalAlpha = 0.70 * shade;
-  ctx.strokeStyle = '#f5d485';
+  ctx.strokeStyle = glyphColor;
   ctx.lineWidth   = Math.max(1, s * 0.055);
   ctx.lineCap     = 'round';
   ctx.lineJoin    = 'round';
