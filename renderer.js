@@ -146,13 +146,17 @@ function drawWallBandsTrap(ctx, x0, y0t, y0b, x1, y1t, y1b, shade, palette) {
     shadeColor(palette.bandAccent, shade));
 }
 
+// Mortar joint thickness as a fraction of wall-face height (shared by back and
+// side walls so the brickwork weight matches across orientations).
+const MORTAR_FRAC = 0.010;
+
 // Draw stone masonry block joints on a rectangular wall face (back walls, flat extensions).
 // Produces a running-bond brick pattern: 3 rows with staggered vertical joints.
 function drawStoneBlocksBack(ctx, l, t, r, b, shade, palette) {
   const h = b - t, w = r - l;
   if (h < 12 || w < 8) return;
   const mc = shadeColor(palette.mortar, shade);
-  const mw = Math.max(1, Math.round(h * 0.025));
+  const mw = Math.max(1, Math.round(h * MORTAR_FRAC));
 
   // Horizontal joints at 1/3 and 2/3 of height
   ctx.fillStyle = mc;
@@ -184,8 +188,8 @@ function drawStoneBlocksSide(ctx, x0, y0t, y0b, x1, y1t, y1b, shade, palette, pr
   const mc = shadeColor(palette.mortar, shade);
 
   // Horizontal joints — thickness tapers with local height to match back walls.
-  const mw0 = Math.max(1, h0 * 0.025) / 2;   // half-thickness at edge x0
-  const mw1 = Math.max(1, h1 * 0.025) / 2;   // half-thickness at edge x1
+  const mw0 = Math.max(1, h0 * MORTAR_FRAC) / 2;   // half-thickness at edge x0
+  const mw1 = Math.max(1, h1 * MORTAR_FRAC) / 2;   // half-thickness at edge x1
   for (const f of [1 / 3, 2 / 3]) {
     const c0 = y0t + h0 * f, c1 = y1t + h1 * f;
     fillPoly(ctx, [
@@ -215,7 +219,7 @@ function drawStoneBlocksSide(ctx, x0, y0t, y0b, x1, y1t, y1b, shade, palette, pr
       const eb = y0b + t * (y1b - y0b);
       const yt = et + rows[i][0] * (eb - et);
       const yb = et + rows[i][1] * (eb - et);
-      const mw = Math.max(1, Math.round((eb - et) * 0.025));   // match back-wall weight
+      const mw = Math.max(1, Math.round((eb - et) * MORTAR_FRAC));   // match back-wall weight
       ctx.fillStyle = mc;
       ctx.fillRect(Math.round(vx) - Math.floor(mw / 2), Math.round(yt), mw, Math.round(yb - yt));
     }
