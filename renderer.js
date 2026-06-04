@@ -182,31 +182,42 @@ function drawStoneBlocksSide(ctx, x0, y0t, y0b, x1, y1t, y1b, shade, palette, pr
   const h0 = y0b - y0t, h1 = y1b - y1t;
   if (h0 < 12 || h1 < 12 || Math.abs(x1 - x0) < 2) return;
   const mc = shadeColor(palette.mortar, shade);
+
+  // Horizontal joints — thickness tapers with local height to match back walls.
+  const mw0 = Math.max(1, h0 * 0.025) / 2;   // half-thickness at edge x0
+  const mw1 = Math.max(1, h1 * 0.025) / 2;   // half-thickness at edge x1
   for (const f of [1 / 3, 2 / 3]) {
+    const c0 = y0t + h0 * f, c1 = y1t + h1 * f;
     fillPoly(ctx, [
-      [x0, y0t + h0 * f - 1], [x1, y1t + h1 * f - 1],
-      [x1, y1t + h1 * f + 1], [x0, y0t + h0 * f + 1],
+      [x0, c0 - mw0], [x1, c1 - mw1],
+      [x1, c1 + mw1], [x0, c0 + mw0],
     ], mc);
   }
   if (!proj) return;
 
-  // Vertical joints — running bond at depth fractions, same pattern as back wall.
+  // Vertical joints — player-relative running-bond grid (brick depth = 0.5 tile),
+  // same pattern as the back wall: top/bottom courses joint-centred, middle course
+  // offset by a half brick. Mortar thickness scales with local height to match.
   const { p, sign, dNear, dFar } = proj;
+  const dLo = Math.min(dNear, dFar), dHi = Math.max(dNear, dFar);
   const xMin = Math.min(x0, x1), xMax = Math.max(x0, x1);
-  const rows   = [[0, 1/3], [1/3, 2/3], [2/3, 1]];
-  const joints = [[0.50], [0.25, 0.75], [0.50]];
+  const rows  = [[0, 1/3], [1/3, 2/3], [2/3, 1]];
+  const phase = [0, 0.25, 0];          // running-bond phase per course (tiles)
+  const STEP  = 0.5;                    // brick depth in tiles
   for (let i = 0; i < rows.length; i++) {
-    for (const f of joints[i]) {
-      const D  = dNear + f * (dFar - dNear);   // world depth of this joint
-      const vx = CX + sign * p / D;            // projects to a vertical line
-      if (vx <= xMin || vx >= xMax) continue;
+    const k = Math.ceil((dLo - phase[i]) / STEP);
+    for (let D = phase[i] + k * STEP; D <= dHi + 1e-6; D += STEP) {
+      if (D <= dLo + 1e-6) continue;             // near edge belongs to the nearer segment
+      const vx = CX + sign * p / D;              // constant-depth line → vertical
+      if (vx < xMin - 1 || vx > xMax + 1) continue;
       const t  = (vx - x0) / (x1 - x0);
-      const et = y0t + t * (y1t - y0t);        // trapezoid top edge at vx
-      const eb = y0b + t * (y1b - y0b);        // trapezoid bottom edge at vx
-      const yt = et + rows[i][0] * (eb - et);  // clip to this course band
+      const et = y0t + t * (y1t - y0t);
+      const eb = y0b + t * (y1b - y0b);
+      const yt = et + rows[i][0] * (eb - et);
       const yb = et + rows[i][1] * (eb - et);
+      const mw = Math.max(1, Math.round((eb - et) * 0.025));   // match back-wall weight
       ctx.fillStyle = mc;
-      ctx.fillRect(Math.round(vx) - 1, Math.round(yt), 2, Math.round(yb - yt));
+      ctx.fillRect(Math.round(vx) - Math.floor(mw / 2), Math.round(yt), mw, Math.round(yb - yt));
     }
   }
 }
