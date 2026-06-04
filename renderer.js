@@ -148,7 +148,7 @@ function drawWallBandsTrap(ctx, x0, y0t, y0b, x1, y1t, y1b, shade, palette) {
 
 // Mortar joint thickness as a fraction of wall-face height (shared by back and
 // side walls so the brickwork weight matches across orientations).
-const MORTAR_FRAC = 0.010;
+const MORTAR_FRAC = 0.005;
 
 // Draw stone masonry block joints on a rectangular wall face (back walls, flat extensions).
 // Produces a running-bond brick pattern: 3 rows with staggered vertical joints.
