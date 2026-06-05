@@ -152,9 +152,11 @@ const MORTAR_FRAC = 0.005;
 
 // Draw stone masonry block joints on a rectangular wall face (back walls, flat extensions).
 // Produces a running-bond brick pattern: 3 rows with staggered vertical joints.
-function drawStoneBlocksBack(ctx, l, t, r, b, shade, palette) {
+// anchorX/brickW world-anchor the vertical joints so a face that only partly faces
+// the player still shows correctly-scaled bricks (the rest clipped out of view).
+function drawStoneBlocksBack(ctx, l, t, r, b, shade, palette, anchorX = l, brickW = (r - l) / 2) {
   const h = b - t, w = r - l;
-  if (h < 12 || w < 8) return;
+  if (h < 12 || w < 8 || brickW < 1) return;
   const mc = shadeColor(palette.mortar, shade);
   const mw = Math.max(1, Math.round(h * MORTAR_FRAC));
 
@@ -164,15 +166,20 @@ function drawStoneBlocksBack(ctx, l, t, r, b, shade, palette) {
     ctx.fillRect(l, Math.round(t + h * f) - Math.floor(mw / 2), w, mw);
   }
 
-  // Vertical joints — running bond: even rows centred, odd row at 1/4 and 3/4
-  const rows   = [[0, 1/3], [1/3, 2/3], [2/3, 1]];
-  const joints = [[0.50], [0.25, 0.75], [0.50]];
+  // Vertical joints — running bond anchored to the world grid: non-offset courses
+  // (top/bottom) at anchorX + k*brickW; middle course offset by a half brick.
+  // Joints outside [l, r] are clipped, so off-view bricks fall away instead of
+  // being compressed into the visible face.
+  const rows  = [[0, 1/3], [1/3, 2/3], [2/3, 1]];
+  const phase = [0, 0.5, 0];                 // half-brick offset for the middle course
   for (let i = 0; i < rows.length; i++) {
     const yt = Math.round(t + h * rows[i][0]);
     const yb = Math.round(t + h * rows[i][1]);
-    for (const xf of joints[i]) {
+    const k0 = Math.ceil((l - anchorX) / brickW - phase[i]);
+    for (let x = anchorX + (k0 + phase[i]) * brickW; x < r - 1; x += brickW) {
+      if (x <= l + 1) continue;              // skip the face edges
       ctx.fillStyle = mc;
-      ctx.fillRect(Math.round(l + w * xf) - Math.floor(mw / 2), yt, mw, yb - yt);
+      ctx.fillRect(Math.round(x) - Math.floor(mw / 2), yt, mw, yb - yt);
     }
   }
 }
@@ -228,8 +235,8 @@ function drawStoneBlocksSide(ctx, x0, y0t, y0b, x1, y1t, y1b, shade, palette, pr
 
 // Composites stone blocks + decorative bands on rectangular and trapezoidal walls.
 // Stone blocks drawn first so band paint covers the joint lines at the edges.
-function drawWallSurfaceRect(ctx, l, t, r, b, shade, palette) {
-  if (palette.stoneBlocks) drawStoneBlocksBack(ctx, l, t, r, b, shade, palette);
+function drawWallSurfaceRect(ctx, l, t, r, b, shade, palette, anchorX, brickW) {
+  if (palette.stoneBlocks) drawStoneBlocksBack(ctx, l, t, r, b, shade, palette, anchorX, brickW);
   drawWallBandsRect(ctx, l, t, r, b, shade, palette);
 }
 
@@ -359,7 +366,7 @@ function renderView(ctx, scene) {
           // Side was closed before this depth: branch end — draw perpendicular face.
           ctx.fillStyle = shadeColor(palette.wallBack, shade);
           ctx.fillRect(near.l, far.t, far.l - near.l, far.b - far.t);
-          drawWallSurfaceRect(ctx, near.l, far.t, far.l, far.b, shade, palette);
+          drawWallSurfaceRect(ctx, near.l, far.t, far.l, far.b, shade, palette, far.l, (far.r - far.l) / 2);
           ctx.save();
           ctx.beginPath();
           ctx.rect(near.l, far.t, far.l - near.l, far.b - far.t);
@@ -430,7 +437,7 @@ function renderView(ctx, scene) {
           // Side was closed before this depth: branch end — draw perpendicular face.
           ctx.fillStyle = shadeColor(palette.wallBack, shade);
           ctx.fillRect(far.r, far.t, near.r - far.r, far.b - far.t);
-          drawWallSurfaceRect(ctx, far.r, far.t, near.r, far.b, shade, palette);
+          drawWallSurfaceRect(ctx, far.r, far.t, near.r, far.b, shade, palette, far.r, (far.r - far.l) / 2);
           ctx.save();
           ctx.beginPath();
           ctx.rect(far.r, far.t, near.r - far.r, far.b - far.t);
