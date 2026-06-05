@@ -176,8 +176,8 @@ function drawStoneBlocksBack(ctx, l, t, r, b, shade, palette, anchorX = l, brick
     const yt = Math.round(t + h * rows[i][0]);
     const yb = Math.round(t + h * rows[i][1]);
     const k0 = Math.ceil((l - anchorX) / brickW - phase[i]);
-    for (let x = anchorX + (k0 + phase[i]) * brickW; x < r - 1; x += brickW) {
-      if (x <= l + 1) continue;              // skip the face edges
+    for (let x = anchorX + (k0 + phase[i]) * brickW; x <= r; x += brickW) {
+      if (x < l) continue;                   // skip joints before the left edge
       ctx.fillStyle = mc;
       ctx.fillRect(Math.round(x) - Math.floor(mw / 2), yt, mw, yb - yt);
     }
