@@ -154,7 +154,8 @@ const MORTAR_FRAC = 0.005;
 // Produces a running-bond brick pattern: 3 rows with staggered vertical joints.
 // anchorX/brickW world-anchor the vertical joints so a face that only partly faces
 // the player still shows correctly-scaled bricks (the rest clipped out of view).
-function drawStoneBlocksBack(ctx, l, t, r, b, shade, palette, anchorX = l, brickW = (r - l) / 2) {
+function drawStoneBlocksBack(ctx, l, t, r, b, shade, palette,
+                              anchorX = l, brickW = (r - l) / 2, allowEdges = false) {
   const h = b - t, w = r - l;
   if (h < 12 || w < 8 || brickW < 1) return;
   const mc = shadeColor(palette.mortar, shade);
@@ -177,9 +178,13 @@ function drawStoneBlocksBack(ctx, l, t, r, b, shade, palette, anchorX = l, brick
     const yb = Math.round(t + h * rows[i][1]);
     const k0 = Math.ceil((l - anchorX) / brickW - phase[i]);
     for (let x = anchorX + (k0 + phase[i]) * brickW; x <= r; x += brickW) {
-      if (x < l) continue;                   // skip joints before the left edge
+      if (!allowEdges && (x <= l + 1 || x >= r - 1)) continue;
+      if (x < l) continue;
       ctx.fillStyle = mc;
-      ctx.fillRect(Math.round(x) - Math.floor(mw / 2), yt, mw, yb - yt);
+      let drawX = Math.round(x) - Math.floor(mw / 2);
+      if (drawX + mw > r) drawX = r - mw;   // right-flush: keep mortar inside face
+      if (drawX < l)      drawX = l;         // left-flush: keep mortar inside face
+      ctx.fillRect(drawX, yt, mw, yb - yt);
     }
   }
 }
@@ -235,8 +240,8 @@ function drawStoneBlocksSide(ctx, x0, y0t, y0b, x1, y1t, y1b, shade, palette, pr
 
 // Composites stone blocks + decorative bands on rectangular and trapezoidal walls.
 // Stone blocks drawn first so band paint covers the joint lines at the edges.
-function drawWallSurfaceRect(ctx, l, t, r, b, shade, palette, anchorX, brickW) {
-  if (palette.stoneBlocks) drawStoneBlocksBack(ctx, l, t, r, b, shade, palette, anchorX, brickW);
+function drawWallSurfaceRect(ctx, l, t, r, b, shade, palette, anchorX, brickW, allowEdges = false) {
+  if (palette.stoneBlocks) drawStoneBlocksBack(ctx, l, t, r, b, shade, palette, anchorX, brickW, allowEdges);
   drawWallBandsRect(ctx, l, t, r, b, shade, palette);
 }
 
@@ -366,7 +371,7 @@ function renderView(ctx, scene) {
           // Side was closed before this depth: branch end — draw perpendicular face.
           ctx.fillStyle = shadeColor(palette.wallBack, shade);
           ctx.fillRect(near.l, far.t, far.l - near.l, far.b - far.t);
-          drawWallSurfaceRect(ctx, near.l, far.t, far.l, far.b, shade, palette, far.l, (far.r - far.l) / 2);
+          drawWallSurfaceRect(ctx, near.l, far.t, far.l, far.b, shade, palette, far.l, (far.r - far.l) / 2, true);
           ctx.save();
           ctx.beginPath();
           ctx.rect(near.l, far.t, far.l - near.l, far.b - far.t);
@@ -437,7 +442,7 @@ function renderView(ctx, scene) {
           // Side was closed before this depth: branch end — draw perpendicular face.
           ctx.fillStyle = shadeColor(palette.wallBack, shade);
           ctx.fillRect(far.r, far.t, near.r - far.r, far.b - far.t);
-          drawWallSurfaceRect(ctx, far.r, far.t, near.r, far.b, shade, palette, far.r, (far.r - far.l) / 2);
+          drawWallSurfaceRect(ctx, far.r, far.t, near.r, far.b, shade, palette, far.r, (far.r - far.l) / 2, true);
           ctx.save();
           ctx.beginPath();
           ctx.rect(far.r, far.t, near.r - far.r, far.b - far.t);
