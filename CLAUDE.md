@@ -12,3 +12,9 @@ OBEscape is a mobile-first browser game. All features must work on mobile browse
 
 - Always work on the `main` branch unless explicitly told otherwise.
 - This branch is deployed to GitHub Pages.
+
+## Plan Mode
+
+- When plan mode is active, take **no** write actions of any kind: no file edits, no commits, no pushes, no shell commands that modify state.
+- Read-only tools (Read, Grep, Glob, Bash reads) are permitted.
+- Do not exit plan mode to make changes — wait for the user to approve the plan and exit plan mode explicitly.
