@@ -536,6 +536,7 @@ window.addEventListener('load', async () => {
       case 'g': debug.godMode     = !debug.godMode;     break;
       case 'd': debug.showDpad    = !debug.showDpad;    break;
       case 'e': debug.showEnemies = !debug.showEnemies; break;
+      case 'm': debug.showMouse  = !debug.showMouse;   break;
       case 't': {
         const raw = prompt('Teleport to x,y:', `${player.x},${player.y}`);
         if (raw) {
@@ -583,6 +584,7 @@ window.addEventListener('load', async () => {
     drawHUD();
     if (debug.showDpad) drawDpad(ctx);
     drawDebugPanel(ctx, map);
+    drawMouseCoords(ctx);
   }
 
   // ------------------------------------------------------------------
@@ -595,7 +597,7 @@ window.addEventListener('load', async () => {
     if (e.key === '`') { runDebugCmd('toggle'); return; }
     if (debug.enabled) {
       const k = e.key.toLowerCase();
-      if (k.length === 1 && 'ngtxlrd'.includes(k)) { runDebugCmd(k); return; }
+      if (k.length === 1 && 'ngtxlrdm'.includes(k)) { runDebugCmd(k); return; }
     }
     if (gameState === 'menu') {
       if (e.key === '1') startRun('explorer');
@@ -711,8 +713,8 @@ window.addEventListener('load', async () => {
 
   canvas.addEventListener('touchstart', handlePointer, { passive: false });
   canvas.addEventListener('mousedown',  handlePointer);
-  canvas.addEventListener('mousemove', e => { debug.mousePos = getCanvasXY(e, canvas); if (debug.enabled) draw(); });
-  canvas.addEventListener('mouseleave', () => { debug.mousePos = null; if (debug.enabled) draw(); });
+  canvas.addEventListener('mousemove', e => { debug.mousePos = getCanvasXY(e, canvas); if (debug.showMouse) draw(); });
+  canvas.addEventListener('mouseleave', () => { debug.mousePos = null; if (debug.showMouse) draw(); });
 
   await preloadItemSprites(VERSION.commit);
   draw();

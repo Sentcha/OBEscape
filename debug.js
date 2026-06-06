@@ -1,4 +1,4 @@
-const debug = { enabled: false, noclip: false, godMode: false, showDpad: false, showEnemies: false, mousePos: null };
+const debug = { enabled: false, noclip: false, godMode: false, showDpad: false, showEnemies: false, showMouse: false, mousePos: null };
 
 // Layout constants — shared by drawDebugPanel and getDebugHit so geometry stays in sync.
 const DBG_BTN   = { x: 720, y: 8, w: 72, h: 40 };
@@ -6,12 +6,13 @@ const DBG_PANEL = { x: 10, w: 780 };
 const DBG_ROW_H = 72;
 const DBG_PAD   = { x: 14, y: 12 };
 
-const DBG_CMDS = ['n', 'g', 'd', 'e', 't', 'x', 'l', 'r'];
+const DBG_CMDS = ['n', 'g', 'd', 'e', 'm', 't', 'x', 'l', 'r'];
 const DBG_LABELS = [
   () => `N  noclip   [${debug.noclip       ? 'ON ' : 'OFF'}]`,
   () => `G  god mode [${debug.godMode      ? 'ON ' : 'OFF'}]`,
   () => `D  d-pad    [${debug.showDpad     ? 'ON ' : 'OFF'}]`,
   () => `E  enemies  [${debug.showEnemies  ? 'ON ' : 'OFF'}]`,
+  () => `M  cursor   [${debug.showMouse    ? 'ON ' : 'OFF'}]`,
   () =>  'T  teleport',
   () =>  'X  → stairs',
   () =>  'L  next level',
@@ -40,7 +41,6 @@ function drawDebugPanel(ctx, map) {
     ...DBG_LABELS.map(fn => fn()),
     `stairs (${sx},${sy})  ${map[0].length}\xD7${map.length}`,
   ];
-  if (debug.mousePos) rows.push(`mouse (${Math.round(debug.mousePos.x)}, ${Math.round(debug.mousePos.y)})`);
 
   const panelY  = DBG_BTN.y + DBG_BTN.h;
   const totalH  = rows.length * DBG_ROW_H + DBG_PAD.y * 2;
@@ -57,6 +57,18 @@ function drawDebugPanel(ctx, map) {
     ctx.fillStyle = i <= 1 ? '#f5d485' : '#c0c0c0';
     ctx.fillText(row, px + DBG_PAD.x, panelY + DBG_PAD.y + (i + 1) * DBG_ROW_H - 18);
   });
+}
+
+function drawMouseCoords(ctx) {
+  if (!debug.showMouse || !debug.mousePos) return;
+  const text = `(${Math.round(debug.mousePos.x)}, ${Math.round(debug.mousePos.y)})`;
+  ctx.font = 'bold 20px monospace';
+  const tw = ctx.measureText(text).width;
+  const rx = 790, by = 942;
+  ctx.fillStyle = 'rgba(0,0,0,0.72)';
+  ctx.fillRect(rx - tw - 10, by - 24, tw + 14, 30);
+  ctx.fillStyle = '#f5d485';
+  ctx.fillText(text, rx - tw - 3, by);
 }
 
 // Returns 'toggle', a command key string, or null.
