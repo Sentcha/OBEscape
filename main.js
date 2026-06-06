@@ -711,6 +711,8 @@ window.addEventListener('load', async () => {
 
   canvas.addEventListener('touchstart', handlePointer, { passive: false });
   canvas.addEventListener('mousedown',  handlePointer);
+  canvas.addEventListener('mousemove', e => { debug.mousePos = getCanvasXY(e, canvas); if (debug.enabled) draw(); });
+  canvas.addEventListener('mouseleave', () => { debug.mousePos = null; if (debug.enabled) draw(); });
 
   await preloadItemSprites(VERSION.commit);
   draw();

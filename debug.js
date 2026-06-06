@@ -1,4 +1,4 @@
-const debug = { enabled: false, noclip: false, godMode: false, showDpad: false, showEnemies: false };
+const debug = { enabled: false, noclip: false, godMode: false, showDpad: false, showEnemies: false, mousePos: null };
 
 // Layout constants — shared by drawDebugPanel and getDebugHit so geometry stays in sync.
 const DBG_BTN   = { x: 720, y: 8, w: 72, h: 40 };
@@ -40,6 +40,7 @@ function drawDebugPanel(ctx, map) {
     ...DBG_LABELS.map(fn => fn()),
     `stairs (${sx},${sy})  ${map[0].length}\xD7${map.length}`,
   ];
+  if (debug.mousePos) rows.push(`mouse (${Math.round(debug.mousePos.x)}, ${Math.round(debug.mousePos.y)})`);
 
   const panelY  = DBG_BTN.y + DBG_BTN.h;
   const totalH  = rows.length * DBG_ROW_H + DBG_PAD.y * 2;
