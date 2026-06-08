@@ -713,8 +713,10 @@ window.addEventListener('load', async () => {
 
   canvas.addEventListener('touchstart', handlePointer, { passive: false });
   canvas.addEventListener('mousedown',  handlePointer);
-  canvas.addEventListener('mousemove', e => { debug.mousePos = getCanvasXY(e, canvas); if (debug.showMouse) draw(); });
-  canvas.addEventListener('mouseleave', () => { debug.mousePos = null; if (debug.showMouse) draw(); });
+  canvas.addEventListener('pointermove',   e  => { debug.mousePos = getCanvasXY(e, canvas); if (debug.showMouse) draw(); });
+  canvas.addEventListener('pointerleave',  () => { debug.mousePos = null; if (debug.showMouse) draw(); });
+  canvas.addEventListener('pointerup',     () => { debug.mousePos = null; if (debug.showMouse) draw(); });
+  canvas.addEventListener('pointercancel', () => { debug.mousePos = null; if (debug.showMouse) draw(); });
 
   await preloadItemSprites(VERSION.commit);
   draw();
